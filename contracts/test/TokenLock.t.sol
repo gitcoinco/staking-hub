@@ -76,10 +76,19 @@ contract TokenLockTest is Test {
     // Lock Tests
     function testLock() public {
         uint256 amount = 1000 * 1e18;
+        uint256[] memory amounts = new uint256[](1);
+        uint256[] memory chainids = new uint256[](1);
+        uint256[] memory roundIds = new uint256[](1);
+        address[] memory recipientIds = new address[](1);
+        
+        amounts[0] = amount;
+        chainids[0] = 1; // Example chain ID
+        roundIds[0] = 1; // Example round ID
+        recipientIds[0] = alice; // Recipient address
         
         vm.startPrank(alice);
         token.approve(address(tokenLock), amount);
-        tokenLock.lock(amount, 1, 1, alice);
+        tokenLock.lock(amounts, chainids, roundIds, recipientIds);
         vm.stopPrank();
 
         assertEq(tokenLock.lockedAmounts(alice), amount);
@@ -89,10 +98,21 @@ contract TokenLockTest is Test {
     function testLockRevert_AfterUnlockEnd() public {
         vm.warp(unlockEnd + 1);
         
+        uint256 amount = 1000 * 1e18;
+        uint256[] memory amounts = new uint256[](1);
+        uint256[] memory chainids = new uint256[](1);
+        uint256[] memory roundIds = new uint256[](1);
+        address[] memory recipientIds = new address[](1);
+        
+        amounts[0] = amount;
+        chainids[0] = 1; // Example chain ID
+        roundIds[0] = 1; // Example round ID
+        recipientIds[0] = alice; // Recipient address
+        
         vm.startPrank(alice);
-        token.approve(address(tokenLock), 1000 * 1e18);
+        token.approve(address(tokenLock), amount);
         vm.expectRevert("TokenLock: Unlock period already complete");
-        tokenLock.lock(1000 * 1e18, 1, 1, alice);
+        tokenLock.lock(amounts, chainids, roundIds, recipientIds);
         vm.stopPrank();
     }
 
@@ -101,9 +121,19 @@ contract TokenLockTest is Test {
         uint256 amount = 1000 * 1e18;
         
         // Lock tokens
+        uint256[] memory amounts = new uint256[](1);
+        uint256[] memory chainids = new uint256[](1);
+        uint256[] memory roundIds = new uint256[](1);
+        address[] memory recipientIds = new address[](1);
+        
+        amounts[0] = amount;
+        chainids[0] = 1; // Example chain ID
+        roundIds[0] = 1; // Example round ID
+        recipientIds[0] = alice; // Recipient address
+        
         vm.startPrank(alice);
         token.approve(address(tokenLock), amount);
-        tokenLock.lock(amount, 1, 1, alice);
+        tokenLock.lock(amounts, chainids, roundIds, recipientIds);
         
         // Try to claim before cliff
         assertEq(tokenLock.claimableBalance(alice), 0);
@@ -116,9 +146,19 @@ contract TokenLockTest is Test {
         uint256 amount = 1000 * 1e18;
         
         // Lock tokens
+        uint256[] memory amounts = new uint256[](1);
+        uint256[] memory chainids = new uint256[](1);
+        uint256[] memory roundIds = new uint256[](1);
+        address[] memory recipientIds = new address[](1);
+        
+        amounts[0] = amount;
+        chainids[0] = 1; // Example chain ID
+        roundIds[0] = 1; // Example round ID
+        recipientIds[0] = alice; // Recipient address
+        
         vm.startPrank(alice);
         token.approve(address(tokenLock), amount);
-        tokenLock.lock(amount, 1, 1, alice);
+        tokenLock.lock(amounts, chainids, roundIds, recipientIds);
         
         // Warp to halfway point
         vm.warp(unlockBegin + (unlockEnd - unlockBegin) / 2);
@@ -136,9 +176,19 @@ contract TokenLockTest is Test {
         uint256 amount = 1000 * 1e18;
         
         // Lock tokens
+        uint256[] memory amounts = new uint256[](1);
+        uint256[] memory chainids = new uint256[](1);
+        uint256[] memory roundIds = new uint256[](1);
+        address[] memory recipientIds = new address[](1);
+        
+        amounts[0] = amount;
+        chainids[0] = 1; // Example chain ID
+        roundIds[0] = 1; // Example round ID
+        recipientIds[0] = alice; // Recipient address
+        
         vm.startPrank(alice);
         token.approve(address(tokenLock), amount);
-        tokenLock.lock(amount, 1, 1, alice);
+        tokenLock.lock(amounts, chainids, roundIds, recipientIds);
         
         // Warp to after unlock end
         vm.warp(unlockEnd + 1);
@@ -162,9 +212,19 @@ contract TokenLockTest is Test {
         uint256 amount = 1000 * 1e18;
         
         // Lock tokens
+        uint256[] memory amounts = new uint256[](1);
+        uint256[] memory chainids = new uint256[](1);
+        uint256[] memory roundIds = new uint256[](1);
+        address[] memory recipientIds = new address[](1);
+        
+        amounts[0] = amount;
+        chainids[0] = 1; // Example chain ID
+        roundIds[0] = 1; // Example round ID
+        recipientIds[0] = alice; // Recipient address
+        
         vm.startPrank(alice);
         token.approve(address(tokenLock), amount);
-        tokenLock.lock(amount, 1, 1, alice);
+        tokenLock.lock(amounts, chainids, roundIds, recipientIds);
         
         // Warp to after unlock end
         vm.warp(unlockEnd + 1);
@@ -177,12 +237,24 @@ contract TokenLockTest is Test {
 
     function testMultipleLockAndClaims() public {
         uint256 amount = 1000 * 1e18;
+        uint256[] memory amounts = new uint256[](2);
+        uint256[] memory chainids = new uint256[](2);
+        uint256[] memory roundIds = new uint256[](2);
+        address[] memory recipientIds = new address[](2);
+        
+        amounts[0] = amount;
+        amounts[1] = amount;
+        chainids[0] = 1; // Example chain ID
+        chainids[1] = 1; // Example chain ID
+        roundIds[0] = 1; // Example round ID
+        roundIds[1] = 1; // Example round ID
+        recipientIds[0] = alice; // Recipient address
+        recipientIds[1] = alice; // Recipient address
         
         // Multiple locks
         vm.startPrank(alice);
         token.approve(address(tokenLock), amount * 2);
-        tokenLock.lock(amount, 1, 1, alice);
-        tokenLock.lock(amount, 1, 1, alice);
+        tokenLock.lock(amounts, chainids, roundIds, recipientIds);
         
         // Warp to 75% through vesting
         vm.warp(unlockBegin + ((unlockEnd - unlockBegin) * 3) / 4);
@@ -238,7 +310,19 @@ contract TokenLockTest is Test {
         token.transfer(bob, amount);
         vm.startPrank(bob);
         token.approve(address(specificLock), amount);
-        specificLock.lock(amount, 1, 1, bob);
+        
+        // Create arrays for lock parameters
+        uint256[] memory amounts = new uint256[](1);
+        uint256[] memory chainids = new uint256[](1);
+        uint256[] memory roundIds = new uint256[](1);
+        address[] memory recipientIds = new address[](1);
+        
+        amounts[0] = amount;
+        chainids[0] = 1; // Example chain ID
+        roundIds[0] = 1; // Example round ID
+        recipientIds[0] = bob; // Recipient address
+        
+        specificLock.lock(amounts, chainids, roundIds, recipientIds);
         
         // Check at start
         assertEq(specificLock.claimableBalance(bob), 0);
@@ -266,7 +350,19 @@ contract TokenLockTest is Test {
         token.transfer(bob, amount);
         vm.startPrank(bob);
         token.approve(address(specificLock), amount);
-        specificLock.lock(amount, 1, 1, bob);
+        
+        // Create arrays for lock parameters
+        uint256[] memory amounts = new uint256[](1);
+        uint256[] memory chainids = new uint256[](1);
+        uint256[] memory roundIds = new uint256[](1);
+        address[] memory recipientIds = new address[](1);
+        
+        amounts[0] = amount;
+        chainids[0] = 1; // Example chain ID
+        roundIds[0] = 1; // Example round ID
+        recipientIds[0] = bob; // Recipient address
+        
+        specificLock.lock(amounts, chainids, roundIds, recipientIds);
         
         // Warp to unlock time
         vm.warp(lockUntil);
@@ -297,7 +393,19 @@ contract TokenLockTest is Test {
         token.transfer(bob, amount);
         vm.startPrank(bob);
         token.approve(address(specificLock), amount);
-        specificLock.lock(amount, 1, 1, bob);
+        
+        // Create arrays for lock parameters
+        uint256[] memory amounts = new uint256[](1);
+        uint256[] memory chainids = new uint256[](1);
+        uint256[] memory roundIds = new uint256[](1);
+        address[] memory recipientIds = new address[](1);
+        
+        amounts[0] = amount;
+        chainids[0] = 1; // Example chain ID
+        roundIds[0] = 1; // Example round ID
+        recipientIds[0] = bob; // Recipient address
+        
+        specificLock.lock(amounts, chainids, roundIds, recipientIds);
         
         // Warp way into the future
         vm.warp(lockUntil + 365 days);

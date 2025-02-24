@@ -71,6 +71,23 @@ contract TokenLock {
         return (locked * (block.timestamp - unlockBegin)) / (unlockEnd - unlockBegin) - claimed;
     }
 
+    function lock(
+        uint256[] memory amount,
+        uint256[] memory chainid,
+        uint256[] memory roundId,
+        address[] memory recipientId
+    ) external {
+        require(
+            amount.length == chainid.length &&
+            amount.length == roundId.length &&
+            amount.length == recipientId.length,
+            "TokenLock: Invalid input length"
+        );
+        for (uint256 i = 0; i < amount.length; i++) {
+            _lock(amount[i], chainid[i], roundId[i], recipientId[i]);
+        }
+    }
+
     /**
      * @dev Transfers tokens from the caller to the token lock contract and locks them.
      *      Requires that the caller has authorised this contract with the token contract.
@@ -79,12 +96,12 @@ contract TokenLock {
      * @param roundId The round ID for the attestation.
      * @param recipientId The recipient ID for the attestation.
      */
-    function lock(
+    function _lock(
         uint256 amount,
         uint256 chainid,
         uint256 roundId,
         address recipientId
-    ) external {
+    ) internal {
         require(block.timestamp < unlockEnd, "TokenLock: Unlock period already complete");
         address recipient = msg.sender;
 
