@@ -1,5 +1,8 @@
-// Base contract: https://github.com/ensdomains/governance-contracts/blob/master/contracts/TokenLock.sol
-// Updated to use EAS for attestation
+// Sourced from https://github.com/ensdomains/governance-contracts/blob/3952d969031357fde9f832a86ef8e3e7152f1e90/contracts/TokenLock.sol
+// Changes:
+// - use EAS for attestation
+// - rename lock() to _lock() and make it internal
+// - add lock() function to enable batch locking
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.2;
 
