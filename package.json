@@ -1,0 +1,13 @@
+{
+    "name": "staking-hub",
+    "private": true,
+    "scripts": {
+      "build": "pnpm -r build",
+      "dev": "pnpm --filter web dev",
+      "lint": "pnpm -r lint",
+      "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    },
+    "devDependencies": {
+      "prettier": "^3.4.1"
+    }
+  } 
