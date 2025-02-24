@@ -1,4 +1,5 @@
 node_modules/
+
 # Compiler files
 contracts/cache/solidity-files-cache.json
 contracts/out/
@@ -15,4 +16,4 @@ contracts/cache_forge/*.json
 docs/
 
 # Dotenv file
-.env
+contracts/.env
