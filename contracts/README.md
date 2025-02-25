@@ -101,3 +101,24 @@ $ forge --help
 $ anvil --help
 $ cast --help
 ```
+
+### Lock Tokens
+
+To lock tokens using the TokenLock contract, first configure the parameters in `script/LockTokens.s.sol`:
+- `TOKEN_ADDRESS`: Address of the ERC20 token contract
+- `TOKEN_LOCK_ADDRESS`: Address of the deployed TokenLock contract
+- `amounts`: Array of token amounts to lock
+- `chainIds`: Array of chain IDs for attestation
+- `roundIds`: Array of round IDs for attestation
+- `recipientIds`: Array of recipient IDs for attestation
+
+Then run one of these commands:
+```shell
+$ make lock-tokens-sepolia     # Lock tokens on Sepolia
+$ make lock-tokens-arbitrum    # Lock tokens on Arbitrum
+$ make lock-tokens-anvil       # Lock tokens on local Anvil chain
+```
+
+Required environment variables:
+- `PRIVATE_KEY`: Private key of the account that owns the tokens
+- Network RPC URLs as specified above
