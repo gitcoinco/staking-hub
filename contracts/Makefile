@@ -1,6 +1,6 @@
 -include .env
 
-.PHONY: install test clean build deploy-sepolia deploy-arbitrum
+.PHONY: install test clean build deploy-sepolia deploy-arbitrum deploy-tokenlock-sepolia deploy-tokenlock-arbitrum deploy-airdrop-sepolia deploy-airdrop-arbitrum deploy-anvil deploy-airdrop-anvil
 
 # Install dependencies
 install:
@@ -37,6 +37,45 @@ deploy-arbitrum:
 		--broadcast \
 		--verify \
 		-vvvv
+
+# Deploy TokenLock to Sepolia
+deploy-tokenlock-sepolia:
+	forge script script/DeployTokenLock.s.sol:DeployTokenLock \
+		--rpc-url $(SEPOLIA_RPC_URL) \
+		--broadcast \
+		--verify \
+		-vvvv
+
+# Deploy TokenLock to Arbitrum
+deploy-tokenlock-arbitrum:
+	forge script script/DeployTokenLock.s.sol:DeployTokenLock \
+		--rpc-url $(ARBITRUM_RPC_URL) \
+		--broadcast \
+		--verify \
+		-vvvv
+
+# Deploy MerkleAirdrop to Sepolia
+deploy-airdrop-sepolia:
+	forge script script/DeployMerkleAirdrop.s.sol:DeployMerkleAirdrop \
+		--rpc-url $(SEPOLIA_RPC_URL) \
+		--broadcast \
+		--verify \
+		-vvvv
+
+# Deploy MerkleAirdrop to Arbitrum
+deploy-airdrop-arbitrum:
+	forge script script/DeployMerkleAirdrop.s.sol:DeployMerkleAirdrop \
+		--rpc-url $(ARBITRUM_RPC_URL) \
+		--broadcast \
+		--verify \
+		-vvvv
+
+# Deploy MerkleAirdrop to local anvil chain
+deploy-airdrop-anvil:
+	forge script script/DeployMerkleAirdrop.s.sol:DeployMerkleAirdrop \
+		--rpc-url http://localhost:8545 \
+		--broadcast \
+		--private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 
 # Simulate deployment (dry-run)
 simulate:

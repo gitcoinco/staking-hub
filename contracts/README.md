@@ -53,15 +53,18 @@ The project includes a Makefile with several deployment options:
 # Install dependencies first
 $ make install
 
-# Deploy to Sepolia testnet
-$ make deploy-sepolia
+# Deploy TokenLock contract
+$ make deploy-tokenlock-sepolia    # Deploy to Sepolia
+$ make deploy-tokenlock-arbitrum   # Deploy to Arbitrum
 
-# Deploy to Arbitrum
-$ make deploy-arbitrum
+# Deploy MerkleAirdrop contract
+$ make deploy-airdrop-sepolia      # Deploy to Sepolia
+$ make deploy-airdrop-arbitrum     # Deploy to Arbitrum
 
 # Deploy to local Anvil chain
-$ make anvil        # Start local chain in one terminal
-$ make deploy-anvil # Deploy in another terminal
+$ make anvil                # Start local chain in one terminal
+$ make deploy-tokenlock-anvil  # Deploy TokenLock
+$ make deploy-airdrop-anvil    # Deploy MerkleAirdrop
 
 # Simulate deployment (dry-run)
 $ make simulate
@@ -70,6 +73,12 @@ $ make simulate
 Required environment variables for deployment:
 - `SEPOLIA_RPC_URL`: RPC URL for Sepolia network
 - `ARBITRUM_RPC_URL`: RPC URL for Arbitrum network
+
+For MerkleAirdrop deployment, additional environment variables are required:
+- `MATCHING_POOL_ADDRESS`: Address of the matching pool contract
+- `SENDER_ADDRESS`: Address of the account sending airdrop tokens
+- `TOKEN_ADDRESS`: Address of the ERC20 token contract
+- `MERKLE_ROOT`: Merkle root of the airdrop claims
 
 Additional Makefile commands:
 ```shell

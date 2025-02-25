@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 // Mock ERC20 token for testing
 contract MockToken is ERC20 {
     constructor() ERC20("Mock", "MCK") {
-        _mint(msg.sender, 1000000 * 10**18);
+        _mint(msg.sender, 1000000 * 10 ** 18);
     }
 }
 
@@ -25,8 +25,8 @@ contract MerkleAirdropTest is Test {
     // Test data for merkle tree
     bytes32[] public proof1;
     bytes32[] public proof2;
-    uint256 public amount1 = 100 * 10**18;
-    uint256 public amount2 = 200 * 10**18;
+    uint256 public amount1 = 100 * 10 ** 18;
+    uint256 public amount2 = 200 * 10 ** 18;
 
     function setUp() public {
         // Create test accounts
@@ -37,12 +37,12 @@ contract MerkleAirdropTest is Test {
 
         // Deploy token and mint to sender
         token = new MockToken();
-        
+
         // Create merkle tree data
         // In a real scenario, you would generate these using a merkle tree library
         bytes32 leaf1 = keccak256(abi.encodePacked(recipient1, amount1));
         bytes32 leaf2 = keccak256(abi.encodePacked(recipient2, amount2));
-        
+
         // For this example, we'll create a simple tree with two leaves
         bytes32 hash12 = keccak256(abi.encodePacked(leaf1, leaf2));
         merkleRoot = hash12;
@@ -50,7 +50,7 @@ contract MerkleAirdropTest is Test {
         // Set up proofs (simplified for testing)
         proof1 = new bytes32[](1);
         proof1[0] = leaf2;
-        
+
         proof2 = new bytes32[](1);
         proof2[0] = leaf1;
 
@@ -58,7 +58,7 @@ contract MerkleAirdropTest is Test {
         airdrop = new MerkleAirdrop(matchingPool, sender, token, merkleRoot);
 
         // Transfer tokens to sender and approve airdrop contract
-        token.transfer(sender, 1000 * 10**18);
+        token.transfer(sender, 1000 * 10 ** 18);
         vm.prank(sender);
         token.approve(address(airdrop), type(uint256).max);
     }
@@ -73,26 +73,26 @@ contract MerkleAirdropTest is Test {
 
     function testClaimTokens() public {
         uint256 initialBalance = token.balanceOf(recipient1);
-        
+
         vm.prank(recipient1);
         airdrop.claimTokens(recipient1, amount1, proof1, false);
-        
+
         assertEq(token.balanceOf(recipient1), initialBalance + amount1);
     }
 
     function testClaimTokensToMatchingPool() public {
         uint256 initialBalance = token.balanceOf(matchingPool);
-        
+
         vm.prank(recipient1);
         airdrop.claimTokens(recipient1, amount1, proof1, true);
-        
+
         assertEq(token.balanceOf(matchingPool), initialBalance + amount1);
     }
 
     function testCannotClaimTwice() public {
         vm.prank(recipient1);
         airdrop.claimTokens(recipient1, amount1, proof1, false);
-        
+
         vm.prank(recipient1);
         vm.expectRevert("MerkleAirdrop: Tokens already claimed.");
         airdrop.claimTokens(recipient1, amount1, proof1, false);
@@ -101,7 +101,7 @@ contract MerkleAirdropTest is Test {
     function testCannotClaimWithInvalidProof() public {
         bytes32[] memory invalidProof = new bytes32[](1);
         invalidProof[0] = bytes32(0);
-        
+
         vm.prank(recipient1);
         vm.expectRevert("MerkleAirdrop: Valid proof required.");
         airdrop.claimTokens(recipient1, amount1, invalidProof, false);
@@ -115,34 +115,29 @@ contract MerkleAirdropTest is Test {
 
     function testClawback() public {
         // First send some tokens to the contract
-        uint256 amount = 100 * 10**18;
+        uint256 amount = 100 * 10 ** 18;
         token.transfer(address(airdrop), amount);
-        
+
         uint256 initialBalance = token.balanceOf(matchingPool);
-        
+
         airdrop.clawback();
-        
+
         assertEq(token.balanceOf(matchingPool), initialBalance + amount);
         assertEq(token.balanceOf(address(airdrop)), 0);
     }
 
     function testCannotClawbackIfNotOwner() public {
         vm.prank(recipient1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Ownable.OwnableUnauthorizedAccount.selector,
-                recipient1
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, recipient1));
         airdrop.clawback();
     }
 
     function testIsClaimed() public {
         assertFalse(airdrop.isClaimed(0));
-        
+
         vm.prank(recipient1);
         airdrop.claimTokens(recipient1, amount1, proof1, false);
-        
+
         assertTrue(airdrop.isClaimed(0));
     }
-} 
+}
