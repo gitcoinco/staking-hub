@@ -50,12 +50,14 @@ contract MerkleAirdrop is Ownable {
      * @param merkleProof A merkle proof proving the claim is valid.
      * @param returnToMatchingPool Whether to send the matching tokens to the matching pool.
      */
-    function claimTokens(address recipient, uint256 amount, bytes32[] calldata merkleProof, bool returnToMatchingPool) external {
+    function claimTokens(address recipient, uint256 amount, bytes32[] calldata merkleProof, bool returnToMatchingPool)
+        external
+    {
         bytes32 leaf = keccak256(abi.encodePacked(recipient, amount));
         (bool valid, uint256 index) = MerkleProof.verify(merkleProof, merkleRoot, leaf);
         require(valid, "MerkleAirdrop: Valid proof required.");
         require(!isClaimed(index), "MerkleAirdrop: Tokens already claimed.");
-        
+
         claimed.set(index);
         emit Claim(recipient, amount);
 

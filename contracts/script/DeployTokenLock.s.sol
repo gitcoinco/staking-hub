@@ -2,7 +2,7 @@
 pragma solidity ^0.8.2;
 
 import "forge-std/Script.sol";
-import "../src/TokenLock.sol";  
+import "../src/TokenLock.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@eas/eas-contracts/EAS.sol";
 
@@ -22,15 +22,8 @@ contract DeployTokenLock is Script {
         bytes32 schemaUID = 0x7921498cf146c7f9691caeadbe93da27ad53a12d1ee066e7b013e181663223df;
 
         // Deploy TokenLock with EAS
-        new TokenLock(
-            token,
-            unlockBegin,
-            unlockCliff,
-            unlockEnd,
-            eas,
-            schemaUID
-        );
+        new TokenLock(token, unlockBegin, unlockCliff, unlockEnd, eas, schemaUID);
 
         vm.stopBroadcast();
     }
-} 
+}

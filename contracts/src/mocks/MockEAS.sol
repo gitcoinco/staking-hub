@@ -23,7 +23,11 @@ contract MockEAS is IEAS {
         return result;
     }
 
-    function multiAttestByDelegation(MultiDelegatedAttestationRequest[] calldata) external payable returns (bytes32[] memory) {
+    function multiAttestByDelegation(MultiDelegatedAttestationRequest[] calldata)
+        external
+        payable
+        returns (bytes32[] memory)
+    {
         bytes32[] memory result = new bytes32[](1);
         result[0] = bytes32(uint256(1));
         return result;
@@ -83,4 +87,4 @@ contract MockEAS is IEAS {
     function version() external pure returns (string memory) {
         return "1.0.0";
     }
-} 
+}

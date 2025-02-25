@@ -23,8 +23,8 @@ contract TokenLock {
     // Schema UID for token lock attestation
     bytes32 public SCHEMA_UID; // 0x7921498cf146c7f9691caeadbe93da27ad53a12d1ee066e7b013e181663223df
 
-    mapping(address=>uint256) public lockedAmounts;
-    mapping(address=>uint256) public claimedAmounts;
+    mapping(address => uint256) public lockedAmounts;
+    mapping(address => uint256) public claimedAmounts;
 
     event Locked(address indexed sender, address indexed recipient, uint256 amount);
     event Claimed(address indexed owner, address indexed recipient, uint256 amount);
@@ -61,14 +61,14 @@ contract TokenLock {
      * @param owner The account to check the claimable balance of.
      * @return The number of tokens currently claimable.
      */
-    function claimableBalance(address owner) public view returns(uint256) {
-        if(block.timestamp < unlockCliff) {
+    function claimableBalance(address owner) public view returns (uint256) {
+        if (block.timestamp < unlockCliff) {
             return 0;
         }
 
         uint256 locked = lockedAmounts[owner];
         uint256 claimed = claimedAmounts[owner];
-        if(block.timestamp >= unlockEnd) {
+        if (block.timestamp >= unlockEnd) {
             return locked - claimed;
         }
         return (locked * (block.timestamp - unlockBegin)) / (unlockEnd - unlockBegin) - claimed;
@@ -81,9 +81,7 @@ contract TokenLock {
         address[] memory recipientId
     ) external {
         require(
-            amount.length == chainid.length &&
-            amount.length == roundId.length &&
-            amount.length == recipientId.length,
+            amount.length == chainid.length && amount.length == roundId.length && amount.length == recipientId.length,
             "TokenLock: Invalid input length"
         );
         for (uint256 i = 0; i < amount.length; i++) {
@@ -99,12 +97,7 @@ contract TokenLock {
      * @param roundId The round ID for the attestation.
      * @param recipientId The recipient ID for the attestation.
      */
-    function _lock(
-        uint256 amount,
-        uint256 chainid,
-        uint256 roundId,
-        address recipientId
-    ) internal {
+    function _lock(uint256 amount, uint256 chainid, uint256 roundId, address recipientId) internal {
         require(block.timestamp < unlockEnd, "TokenLock: Unlock period already complete");
         address recipient = msg.sender;
 
@@ -113,10 +106,10 @@ contract TokenLock {
 
         // Create attestation with schema parameters
         bytes memory data = abi.encode(
-            chainid,        // chainId
-            roundId,       // roundId
-            recipientId,   // recipientId (from parameter)
-            amount         // amount
+            chainid, // chainId
+            roundId, // roundId
+            recipientId, // recipientId (from parameter)
+            amount // amount
         );
 
         // Create attestation request data
@@ -130,13 +123,10 @@ contract TokenLock {
         });
 
         // Create full attestation request
-        AttestationRequest memory request = AttestationRequest({
-            schema: SCHEMA_UID,
-            data: requestData
-        });
+        AttestationRequest memory request = AttestationRequest({schema: SCHEMA_UID, data: requestData});
 
         eas.attest(request);
-        
+
         emit Locked(msg.sender, recipient, amount);
     }
 
@@ -147,7 +137,7 @@ contract TokenLock {
      */
     function claim(address recipient, uint256 amount) external {
         uint256 claimable = claimableBalance(msg.sender);
-        if(amount > claimable) {
+        if (amount > claimable) {
             amount = claimable;
         }
         claimedAmounts[msg.sender] += amount;
