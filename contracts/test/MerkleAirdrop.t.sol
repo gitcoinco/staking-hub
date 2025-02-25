@@ -63,7 +63,7 @@ contract MerkleAirdropTest is Test {
         token.approve(address(airdrop), type(uint256).max);
     }
 
-    function testConstructor() public {
+    function testConstructor() public view {
         assertEq(address(airdrop.matchingPool()), matchingPool);
         assertEq(address(airdrop.sender()), sender);
         assertEq(address(airdrop.token()), address(token));
