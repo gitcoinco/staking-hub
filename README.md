@@ -1,66 +1,23 @@
-## Foundry
+# Gitcoin Staking Hub 🌟
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Welcome to the Gitcoin Staking Hub - where you can supercharge your favorite projects and earn rewards while supporting the future of public goods! 🚀
 
-Foundry consists of:
+## What's This All About? ✨
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+The Staking Hub lets GTC holders become active participants in the success of Gitcoin projects:
+- 🎯 Back projects you believe in during Grants rounds
+- 💎 Earn rewards when your chosen projects succeed
+- 📊 Keep track of all your staking activities in one place
 
-## Documentation
+Your rewards grow based on:
+- 🌱 How well your chosen projects perform
+- 💪 How much GTC you stake
+- ⏳ How long you stay committed
 
-https://book.getfoundry.sh/
+## Project Structure 📁
 
-## Usage
-
-### Build
-
-```shell
-$ forge build
 ```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+├── contracts/         # Smart contracts
+├── web/               # Frontend
+└── api/               # Backend
 ```
