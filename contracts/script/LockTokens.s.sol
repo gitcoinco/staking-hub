@@ -7,16 +7,16 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract LockTokens is Script {
     // Configuration
-    address public constant TOKEN_ADDRESS = address(0); // Replace with actual token address
-    address public constant TOKEN_LOCK_ADDRESS = address(0); // Replace with deployed TokenLock address
+    address public constant TOKEN_ADDRESS = 0x769E088b0165BA73D26E0642E26e2C969C24B1e3; // Replace with actual token address
+    address public constant TOKEN_LOCK_ADDRESS = 0x8f274af489daBdc56a180067D32E24A3b275AB76; // Replace with deployed TokenLock address
     
     // Example lock parameters - customize as needed
-    uint256[] public amounts = [1e18, 2e18]; // Amount of tokens to lock
-    uint256[] public chainIds = [1, 1]; // Chain IDs for attestation
-    uint256[] public roundIds = [1, 1]; // Round IDs for attestation
+    uint256[] public amounts = [1e18, 1e18]; // Amount of tokens to lock
+    uint256[] public chainIds = [11155111, 11155111]; // Chain IDs for attestation
+    uint256[] public roundIds = [614, 614]; // Round IDs for attestation
     address[] public recipientIds = [
-        address(0x1234), 
-        address(0x5678)
+        0x8E7D0E405D5cfA944D5Ab1763a73c8DFe1cF564D, 
+        0x2c7296a5eC0539f0A018C7176c97c92A9C44E2B4
     ]; // Recipient IDs for attestation
 
     function run() public {
