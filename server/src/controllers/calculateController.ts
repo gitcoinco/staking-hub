@@ -54,9 +54,9 @@ export const calculate = async (
     alloPoolId === undefined ||
     !Array.isArray(projects) ||
     !Array.isArray(stakes) ||
-    typeof totalRewardPool !== 'number' ||
-    typeof totalMatchAmount !== 'number' ||
-    typeof totalDuration !== 'number'
+    typeof totalRewardPool !== 'bigint' ||
+    typeof totalMatchAmount !== 'bigint' ||
+    typeof totalDuration !== 'bigint'
   ) {
     throw new IsNullError('Missing required parameters');
   }
