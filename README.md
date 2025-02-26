@@ -19,5 +19,5 @@ Your rewards grow based on:
 ```
 ├── contracts/         # Smart contracts
 ├── web/               # Frontend
-└── api/               # Backend
+└── server/               # Backend
 ```
