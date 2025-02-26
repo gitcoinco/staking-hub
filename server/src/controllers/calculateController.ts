@@ -3,10 +3,10 @@ import { IsNullError } from '@/errors';
 import { createLogger } from '@/logger';
 import { catchError, validateRequest } from '@/utils/utils';
 import { Pool } from '@/entity/Pool';
-import { poolRepository } from '@/repository'
+import { poolRepository } from '@/repository';
 
 import type { Project, Stake } from '@/types';
-import calculateRewards from '@/utils/calc';
+import { calculateRewards, generateMerkleData } from '@/utils/calc';
 
 const logger = createLogger();
 
@@ -24,22 +24,25 @@ export const calculate = async (
 ): Promise<void> => {
   validateRequest(req, res);
 
-  const { 
-    chainId, 
-    alloPoolId, 
-    totalRewardPool, 
-    totalMatchAmount, 
-    totalDuration 
+  const {
+    chainId,
+    alloPoolId,
+    totalRewardPool,
+    totalMatchAmount,
+    totalDuration,
   } = req.body;
 
-  // add dummy(!) (use a json if needed) fetching logic for projects and stakes. use catchError logic
-  const [errorFetchingProjects, projects] = await catchError(fetchProjects(chainId, alloPoolId));
+  const [errorFetchingProjects, projects] = await catchError(
+    fetchProjects(chainId, alloPoolId)
+  );
 
   if (errorFetchingProjects !== null) {
     logger.error('Error fetching projects:', errorFetchingProjects);
   }
 
-  const [errorFetchingStakes, stakes] = await catchError(fetchStakes(chainId, alloPoolId));
+  const [errorFetchingStakes, stakes] = await catchError(
+    fetchStakes(chainId, alloPoolId)
+  );
 
   if (errorFetchingStakes !== null) {
     logger.error('Error fetching stakes:', errorFetchingStakes);
@@ -47,12 +50,12 @@ export const calculate = async (
 
   // Validate required parameters
   if (
-    chainId === undefined || 
-    alloPoolId === undefined || 
-    !Array.isArray(projects) || 
-    !Array.isArray(stakes) || 
-    typeof totalRewardPool !== 'number' || 
-    typeof totalMatchAmount !== 'number' || 
+    chainId === undefined ||
+    alloPoolId === undefined ||
+    !Array.isArray(projects) ||
+    !Array.isArray(stakes) ||
+    typeof totalRewardPool !== 'number' ||
+    typeof totalMatchAmount !== 'number' ||
     typeof totalDuration !== 'number'
   ) {
     throw new IsNullError('Missing required parameters');
@@ -66,21 +69,17 @@ export const calculate = async (
     stakes
   );
 
-  // Transform rewards for database storage
-  const rewards = calculatedRewards.map(reward => ({
-    recipientId: reward.user,
-    amount: reward.reward.toString(),
-    proof: [] // Empty proof array as it's generated separately
-  }));
+  const { merkleRoot, rewards } = generateMerkleData(calculatedRewards);
 
   // Save to database using catchError
   const pool = new Pool();
   pool.chainId = chainId;
   pool.alloPoolId = alloPoolId;
   pool.rewards = rewards;
+  pool.merkleRoot = merkleRoot;
 
   const [error] = await catchError(poolRepository.save(pool));
-  
+
   if (error !== null) {
     logger.error('Error saving rewards to database:', error);
   }
@@ -88,13 +87,18 @@ export const calculate = async (
   res.status(200).json({ success: true, rewards });
 };
 
-const fetchProjects = async (chainId: number, alloPoolId: string): Promise<Project[]> => {
+const fetchProjects = async (
+  chainId: number,
+  alloPoolId: string
+): Promise<Project[]> => {
   // TODO: Implement actual fetching logic
   return [];
 };
 
-
-const fetchStakes = async (chainId: number, alloPoolId: string): Promise<Stake[]> => {
+const fetchStakes = async (
+  chainId: number,
+  alloPoolId: string
+): Promise<Stake[]> => {
   // TODO: Implement actual fetching logic
   return [];
 };
