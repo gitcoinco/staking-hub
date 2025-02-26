@@ -5,7 +5,7 @@ import {
   Unique,
 } from 'typeorm';
 
-type Reward = {
+interface Reward {
   recipientId: string;
   amount: string;
   proof: string[];

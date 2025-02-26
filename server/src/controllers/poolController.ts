@@ -1,15 +1,14 @@
 import type { Request, Response } from 'express';
 import poolService from '@/service/PoolService';
-import applicationService from '@/service/ApplicationService';
 import { catchError, validateRequest } from '@/utils';
 import { createLogger } from '@/logger';
 import {
   indexerClient,
-  type RoundWithApplications as IndexerRoundWithApplications,
-  type RoundMetadata as IndexerRoundMetadata,
+  // type RoundWithApplications as IndexerRoundWithApplications,
+  // type RoundMetadata as IndexerRoundMetadata,
 } from '@/ext/indexer';
 
-import { type Pool } from '@/entity/Pool';
+// import { type Pool } from '@/entity/Pool';
 import { IsNullError, NotFoundError } from '@/errors';
 
 const logger = createLogger();
@@ -71,27 +70,10 @@ export const syncPool = async (req: Request, res: Response): Promise<void> => {
 
   // ---- Update Applications ----
   // Update the pool with the applications from the indexer
-  await updateApplications(chainId, alloPoolId, indexerPoolData);
+  // await updateApplications(chainId, alloPoolId, indexerPoolData);
 
   // Log success and respond to the request
   logger.info('successfully synced pool', pool);
   res.status(200).json({ message: 'pool synced successfully' });
 };
 
-
-const updateApplications = async (
-  chainId: number,
-  alloPoolId: string,
-  indexerPoolData: IndexerRoundWithApplications
-): Promise<void> => {
-  const applicationData = indexerPoolData.applications.map(application => ({
-    alloApplicationId: application.id,
-    profileId: application.projectId,
-  }));
-
-  await applicationService.upsertApplicationsForPool(
-    alloPoolId,
-    chainId,
-    applicationData
-  );
-};
