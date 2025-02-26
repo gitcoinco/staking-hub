@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: indexer
+networks:
+- id: 11155111
+  start_block: 0
+  contracts:
+  - name: TokenLock
+    address:
+    - 0x8f274af489daBdc56a180067D32E24A3b275AB76
+    handler: src/EventHandlers.ts
+    events:
+    - event: Claimed(address indexed owner, address indexed recipient, uint256 amount)
+    - event: Locked(address indexed sender, address indexed recipient, uint256 amount)
+  - name: MerkleAirdrop
+    address:
+    - 0x50C6C30C1e7aa5f21735fFED67372E89B7Cf3919
+    handler: src/EventHandlers.ts
+    events:
+    - event: Claim(address indexed claimant, uint256 amount)
+    - event: MerkleRootChanged(bytes32 merkleRoot)
+    - event: OwnershipTransferred(address indexed previousOwner, address indexed newOwner)

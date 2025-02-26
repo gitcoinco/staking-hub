@@ -1,0 +1,31 @@
+type MerkleAirdrop_Claim {
+  id: ID!
+  claimant: String!
+  amount: BigInt!
+}
+
+type MerkleAirdrop_MerkleRootChanged {
+  id: ID!
+  merkleRoot: String!
+}
+
+type MerkleAirdrop_OwnershipTransferred {
+  id: ID!
+  previousOwner: String!
+  newOwner: String!
+}
+
+type TokenLock_Claimed {
+  id: ID!
+  owner: String!
+  recipient: String!
+  amount: BigInt!
+}
+
+type TokenLock_Locked {
+  id: ID!
+  sender: String!
+  recipient: String!
+  amount: BigInt!
+}
+
