@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import poolService from '@/service/PoolService';
-import { catchError, validateRequest } from '@/utils';
+import { catchError, validateRequest } from '@/utils/utils';
 import { createLogger } from '@/logger';
 import {
   indexerClient,

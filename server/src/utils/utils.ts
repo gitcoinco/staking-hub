@@ -3,8 +3,8 @@ import { type Request, type Response } from 'express';
 import { validationResult } from 'express-validator';
 import deterministicHash from 'deterministic-object-hash';
 import { type Hex, keccak256, recoverAddress, toHex } from 'viem';
-import { indexerClient } from './ext/indexer';
-import { env } from './env';
+import { indexerClient } from '../ext/indexer';
+import { env } from '../env';
 
 const logger = createLogger();
 
