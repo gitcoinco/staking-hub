@@ -25,6 +25,9 @@ export class Pool {
 
   @Column('simple-json', { nullable: true })
   rewards: Reward[];
+
+  @Column('text', { nullable: true })
+  merkleRoot: string;
 }
 
 // - Round Starts
