@@ -21,8 +21,10 @@ TokenLock.Claimed.handler(async ({ event, context }) => {
 TokenLock.Locked.handler(async ({ event, context }) => {
   const entity: TokenLock_Locked = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    sender: event.params.sender,
-    recipient: event.params.recipient,
+    sender: event.params.owner,
+    chainId: event.params.chainId,
+    poolId: event.params.poolId,
+    recipient: event.params.recipientId,
     amount: event.params.amount,
   };
 

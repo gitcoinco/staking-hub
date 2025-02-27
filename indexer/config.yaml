@@ -6,11 +6,11 @@ networks:
   contracts:
   - name: TokenLock
     address:
-    - 0x8f274af489daBdc56a180067D32E24A3b275AB76
+    - 0x9Aa6321b15A9c4da0cb5E81B3F3B3b3F6065Aa4a
     handler: src/TokenLockHandlers.ts
     events:
     - event: Claimed(address indexed owner, address indexed recipient, uint256 amount)
-    - event: Locked(address indexed sender, address indexed recipient, uint256 amount)
+    - event: Locked(address indexed owner, uint256 chainId, uint256 poolId, address indexed recipientId, uint256 amount)
   - name: MerkleAirdrop
     address:
     - 0x50C6C30C1e7aa5f21735fFED67372E89B7Cf3919
@@ -19,3 +19,4 @@ networks:
     - event: Claim(address indexed claimant, uint256 amount)
     - event: MerkleRootChanged(bytes32 merkleRoot)
     - event: OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
+    - event: Clawback(address indexed clawbackAddress, uint256 amount, address token)
