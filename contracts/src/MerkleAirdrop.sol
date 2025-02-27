@@ -27,7 +27,7 @@ contract MerkleAirdrop is Ownable {
     BitMaps.BitMap private claimed;
 
     event Claim(address indexed claimant, uint256 amount);
-    event Clawback(address indexed clawbackAddress, uint256 amount);
+    event Clawback(address indexed clawbackAddress, uint256 amount, address token);
 
     /**
      * @dev Constructor.
@@ -80,9 +80,9 @@ contract MerkleAirdrop is Ownable {
      * @dev Claws back the remaining tokens to the matching pool.
      * @notice Only the owner can call this function.
      */
-    function clawback() external onlyOwner {
-        uint256 balance = token.balanceOf(address(this));
-        token.transfer(matchingPool, balance);
-        emit Clawback(msg.sender, balance);
+    function clawback(address _token) external onlyOwner {
+        uint256 balance = IERC20(_token).balanceOf(address(this));
+        IERC20(_token).transfer(matchingPool, balance);
+        emit Clawback(msg.sender, balance, _token);
     }
 }

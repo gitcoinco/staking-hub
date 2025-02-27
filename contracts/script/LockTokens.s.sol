@@ -13,7 +13,7 @@ contract LockTokens is Script {
     // Example lock parameters - customize as needed
     uint256[] public amounts = [1e18, 1e18]; // Amount of tokens to lock
     uint256[] public chainIds = [11155111, 11155111]; // Chain IDs for attestation
-    uint256[] public roundIds = [614, 614]; // Round IDs for attestation
+    uint256[] public poolIds = [614, 614]; // Pool IDs (changed from roundIds)
     address[] public recipientIds =
         [0x8E7D0E405D5cfA944D5Ab1763a73c8DFe1cF564D, 0x2c7296a5eC0539f0A018C7176c97c92A9C44E2B4]; // Recipient IDs for attestation
 
@@ -38,7 +38,7 @@ contract LockTokens is Script {
         token.approve(TOKEN_LOCK_ADDRESS, totalAmount);
 
         // Lock tokens
-        tokenLock.lock(amounts, chainIds, roundIds, recipientIds);
+        tokenLock.lock(amounts, chainIds, poolIds, recipientIds);
 
         vm.stopBroadcast();
     }
