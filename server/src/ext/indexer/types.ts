@@ -70,11 +70,14 @@ export interface Application {
   };
 }
 
-export interface RoundWithApplications {
+export interface Round {
   chainId: number;
   id: string;
   roundMetadata: RoundMetadata;
   roundMetadataCid: string;
+}
+
+export interface RoundWithApplications extends Round {
   applications: Application[];
 }
 
@@ -97,10 +100,28 @@ export interface ApplicationRoundQueryResponse {
   application: ApplicationWithRound;
 }
 
-export interface ManagerRolesResponse {
+export interface RoundDistributionsQueryResponse {
   rounds: Array<{
-    roles: Array<{
-      address: string;
+    totalDistributed: string;
+    applications: Array<{
+      id: string;
+      distributionTransaction: string;
     }>;
   }>;
+}
+
+export interface GetRoundsQueryResponse {
+  rounds: Round[];
+}
+
+export interface Stake {
+  chainId: number;
+  amount: string;
+  poolId: string;
+  recipient: string;
+  sender: string;
+}
+
+export interface PoolStakesQueryResponse {
+  TokenLock_Locked: Stake[];
 }

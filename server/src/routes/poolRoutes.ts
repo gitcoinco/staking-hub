@@ -1,5 +1,5 @@
 import { calculate } from '@/controllers/calculateController';
-import { syncPool } from '@/controllers/poolController';
+import { createPool, getPoolRewards, getPoolStakes } from '@/controllers/poolController';
 import { Router } from 'express';
 
 const router = Router();
@@ -8,7 +8,9 @@ const router = Router();
  * @swagger
  * /pools:
  *   post:
- *     summary: Syncs a pool with the given poolId and chainId from the indexer
+ *     tags:
+ *       - pool
+ *     summary: Creates a pool
  *     requestBody:
  *       required: true
  *       content:
@@ -19,11 +21,11 @@ const router = Router();
  *               alloPoolId:
  *                 type: string
  *                 description: The ID of the pool to create
- *                 example: "609"  # Example of poolId
+ *                 example: "673"  # Example of poolId
  *               chainId:
  *                 type: number
  *                 description: The chain ID associated with the pool
- *                 example: 42161  # Example of chainId (Arbitrum)
+ *                 example: 11155111 # Example of chainId (Sepolia)
  *             required:
  *               - alloPoolId
  *               - chainId
@@ -34,18 +36,56 @@ const router = Router();
  *         description: Invalid poolId or chainId format
  *       500:
  *         description: Internal server error
- *     examples:
- *       application/json:
- *         - value:
- *             alloPoolId: "609"
- *             chainId: "42161"
  */
-router.post('/', syncPool);
+router.post('/', createPool);
+
+/**
+ * @swagger
+ * /pools/{chainId}/{poolId}/rewards:
+ *   get:
+ *     tags:
+ *       - pool
+ *     summary: Retrieves pool rewards for the given chainId and poolId
+ *     parameters:
+ *       - in: path
+ *         name: chainId
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: The chain ID associated with the pool
+ *         example: 42161
+ *       - in: path
+ *         name: poolId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the pool
+ *         example: "609"
+ *       - in: query
+ *         name: recipientId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Optional recipient ID to filter pool rewards
+ *         example: "0x5cdb35fADB8262A3f88863254c870c2e6A848CcA"
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved pool rewards
+ *       400:
+ *         description: Invalid poolId, chainId, or recipientId format
+ *       404:
+ *         description: Pool or recipient not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/pools/:chainId/:poolId/rewards', getPoolRewards);
 
 /**
  * @swagger
  * /pools/calculate:
  *   post:
+ *     tags:
+ *       - pool
  *     summary: Calculates rewards for a pool based on stakes and projects
  *     requestBody:
  *       required: true
@@ -109,5 +149,37 @@ router.post('/', syncPool);
  *         description: Internal server error
  */
 router.post('/calculate', calculate);
+
+/**
+ * @swagger
+ * /pools/stakes:
+ *   get:
+ *     tags:
+ *       - pool
+ *     summary: Retrieves pool stakes for the given chainId and alloPoolId
+ *     parameters:
+ *       - in: query
+ *         name: chainId
+ *         required: false
+ *         schema:
+ *           type: number
+ *         description: The chain ID associated with the pool
+ *         example: 11155111
+ *       - in: query
+ *         name: alloPoolId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: The ID of the pool
+ *         example: "673"
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved pool stakes
+ *       400:
+ *         description: Invalid chainId or alloPoolId format
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/stakes', getPoolStakes);
 
 export default router;

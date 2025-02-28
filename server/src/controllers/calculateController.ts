@@ -3,10 +3,10 @@ import { IsNullError } from '@/errors';
 import { createLogger } from '@/logger';
 import { catchError, validateRequest } from '@/utils/utils';
 import { Pool } from '@/entity/Pool';
-import { poolRepository } from '@/repository';
 
 import type { Project, Stake } from '@/types';
-import { calculateRewards, generateMerkleData } from '@/utils/calc';
+import { calculateRewards, generateMerkleData } from '@/utils/calculations';
+import poolService from '@/service/PoolService';
 
 const logger = createLogger();
 
@@ -78,7 +78,7 @@ export const calculate = async (
   pool.rewards = rewards;
   pool.merkleRoot = merkleRoot;
 
-  const [error] = await catchError(poolRepository.save(pool));
+  const [error] = await catchError(poolService.savePool(pool));
 
   if (error !== null) {
     logger.error('Error saving rewards to database:', error);
