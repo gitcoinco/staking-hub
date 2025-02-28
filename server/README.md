@@ -16,7 +16,6 @@
 │   ├── service                 # Business logic and service functions
 │   ├── data-source.ts          # Database connection setup and configuration
 │   ├── index.ts                # Application entry point
-│   ├── postgraphile.config.ts  # Postgraphile configuration
 │   ├── repository.ts           # Repositories for data access logic
 │   ├── swagger.ts              # Optional: Swagger setup in TypeScript
 │   └── utils.ts                # Utility functions and helper methods
@@ -57,7 +56,6 @@
 - For [Logging.md](./src//logger/logger.md) to understand use winston for logging
 - For Try catch handling done via [catchError](./src/utils.ts)
 - All routes are documented using [swagger](./src/swagger.ts)
-- Postgraphile endpoint is hosted at `http://localhost:3000/graphiql`
 
 ```
 POST Endpoint

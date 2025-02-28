@@ -40,8 +40,6 @@
     "merkletreejs": "^0.5.1",
     "openai": "^4.71.1",
     "pg": "^8.4.0",
-    "postgraphile": "^4.13.0",
-    "postgraphile-plugin-connection-filter": "^2.3.0",
     "reflect-metadata": "^0.1.14",
     "tsconfig-paths": "^4.2.0",
     "typeorm": "^0.3.20",

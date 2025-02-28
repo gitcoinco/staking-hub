@@ -11,7 +11,6 @@ import swaggerOptions from '@/swagger';
 import { AppDataSource } from '@/data-source';
 import routes from '@/routes';
 import { createLogger } from '@/logger';
-import { postgraphileMiddleware } from '@/postgraphile.config';
 import { BaseError } from '@/errors';
 import { execSync } from 'child_process';
 
@@ -34,27 +33,23 @@ app.use(cors());
 
 app.get('/', (req, res) => {
   res.json({
-    deployedCommitHash: `https://github.com/gitcoinco/retrofunding-api/commit/${execSync('git rev-parse HEAD').toString().trim()}`,
-    message: 'Welcome to the Retrofunding Campaign! 🌟',
+    deployedCommitHash: `https://github.com/gitcoinco/staking-hub/commit/${execSync('git rev-parse HEAD').toString().trim()}`,
+    message: 'Welcome to the Gitcoin Staking! 🌟',
     apis: '/api-docs',
-    graphiql: '/graphiql',
-    status: 'Ready to run a retrofunding campaign!',
+    status: 'Ready to run stake GTC for your favorite projects!',
     data: {
-      current_task: 'Participate in the retrofunding campaign 🚀',
-      next_step: 'Allocate your votes to the projects that matter most to you 🎯',
-      metrics: ['Impact', 'Innovation', 'Feasibility'],
+      current_task: 'Stake GTC for your favorite projects 🚀',
       projects: [
-        { name: 'Project Alpha', scores: { Impact: 85, Innovation: 90, Feasibility: 80 } },
-        { name: 'Project Beta', scores: { Impact: 78, Innovation: 85, Feasibility: 88 } },
-        { name: 'Project Gamma', scores: { Impact: 92, Innovation: 88, Feasibility: 75 } },
+        { name: 'Project Alpha', round: "GG23 OSO Round" },
+        { name: 'Project Beta', round: "GG23 Infra Round" },
+        { name: 'Project Gamma', round: "GG23 Infra Round" },
       ],
     },
     tips: [
-      'Consider which metrics are most important to you when voting! 🗳️',
-      'Review each project\'s scores across different metrics! 📊',
-      'Your votes help determine funding allocation! 💰',
+      'Stake GTC for your favorite projects!',
+      'Earn rewards from the pool pot based on how the project performs!',
+      'Withdraw your stake once the round is over and you have earned rewards!',
     ],
-    joke: "Why did the project manager bring a ladder to the retrofunding campaign? Because they wanted to reach new heights in metrics! 🪜",
   });
 });
 
@@ -65,9 +60,6 @@ app.use(
   swaggerUi.serve as express.RequestHandler,
   swaggerUi.setup(specs) as express.RequestHandler
 );
-
-// Configure GraphQL server
-app.use(postgraphileMiddleware);
 
 // Configure JSON body parser
 app.use(express.json());
