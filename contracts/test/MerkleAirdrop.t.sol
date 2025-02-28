@@ -28,6 +28,9 @@ contract MerkleAirdropTest is Test {
     uint256 public amount1 = 100 * 10 ** 18;
     uint256 public amount2 = 200 * 10 ** 18;
 
+    event Claim(address indexed claimant, uint256 amount);
+    event Clawback(address indexed clawbackAddress, uint256 amount, address token);
+
     function setUp() public {
         // Create test accounts
         matchingPool = makeAddr("matchingPool");
@@ -73,6 +76,9 @@ contract MerkleAirdropTest is Test {
 
     function testClaimTokens() public {
         uint256 initialBalance = token.balanceOf(recipient1);
+
+        vm.expectEmit(true, true, false, false);
+        emit Claim(recipient1, amount1);
 
         vm.prank(recipient1);
         airdrop.claimTokens(recipient1, amount1, proof1, false);
@@ -120,7 +126,10 @@ contract MerkleAirdropTest is Test {
 
         uint256 initialBalance = token.balanceOf(matchingPool);
 
-        airdrop.clawback();
+        vm.expectEmit(true, true, true, true);
+        emit Clawback(address(this), amount, address(token));
+
+        airdrop.clawback(address(token));
 
         assertEq(token.balanceOf(matchingPool), initialBalance + amount);
         assertEq(token.balanceOf(address(airdrop)), 0);
@@ -129,7 +138,7 @@ contract MerkleAirdropTest is Test {
     function testCannotClawbackIfNotOwner() public {
         vm.prank(recipient1);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, recipient1));
-        airdrop.clawback();
+        airdrop.clawback(address(token));
     }
 
     function testIsClaimed() public {

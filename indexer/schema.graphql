@@ -25,7 +25,16 @@ type TokenLock_Claimed {
 type TokenLock_Locked {
   id: ID!
   sender: String!
+  chainId: BigInt!
+  poolId: BigInt!
   recipient: String!
   amount: BigInt!
+}
+
+type MerkleAirdrop_Clawback {
+  id: ID!
+  clawbackAddress: String!
+  amount: BigInt!
+  token: String!
 }
 

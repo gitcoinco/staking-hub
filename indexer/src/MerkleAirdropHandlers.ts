@@ -3,6 +3,7 @@ import {
   MerkleAirdrop_Claim,
   MerkleAirdrop_MerkleRootChanged,
   MerkleAirdrop_OwnershipTransferred,
+  MerkleAirdrop_Clawback,
 } from "generated";
 
 MerkleAirdrop.Claim.handler(async ({ event, context }) => {
@@ -32,4 +33,15 @@ MerkleAirdrop.OwnershipTransferred.handler(async ({ event, context }) => {
   };
 
   context.MerkleAirdrop_OwnershipTransferred.set(entity);
+});
+
+MerkleAirdrop.Clawback.handler(async ({ event, context }) => {
+  const entity: MerkleAirdrop_Clawback = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    clawbackAddress: event.params.clawbackAddress,
+    amount: event.params.amount,
+    token: event.params.token,
+  };
+
+  context.MerkleAirdrop_Clawback.set(entity);
 });
