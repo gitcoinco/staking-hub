@@ -5,13 +5,13 @@ import type {
 } from '@/types';
 import { keccak256, encodePacked, type Hex } from 'viem';
 import { MerkleTree } from 'merkletreejs';
-import { type MatchingDistribution, type Stake } from '@/ext/indexer';
+import { type MatchingDistributionWithAnchorAddress, type Stake } from '@/ext/indexer';
 
 export function calculateRewards(
   totalRewardPool: bigint,
   totalMatchAmount: bigint,
   totalDuration: bigint,
-  matchingDistribution: MatchingDistribution[],
+  matchingDistribution: MatchingDistributionWithAnchorAddress[],
   stakes: Stake[]
 ): RewardCalculation[] {
   console.log('==> 1. Initial inputs:', {
@@ -42,15 +42,15 @@ export function calculateRewards(
       stakeWeight: stakeWeight.toString()
     });
 
-    projectWeights[stake.recipient] =
-      (projectWeights[stake.recipient] ?? BigInt(0)) + stakeWeight;
-    userWeights[`${stake.sender}:${stake.recipient}`] =
-      (userWeights[`${stake.sender}:${stake.recipient}`] ?? BigInt(0)) +
+    projectWeights[stake.recipient.toLowerCase()] =
+      (projectWeights[stake.recipient.toLowerCase()] ?? BigInt(0)) + stakeWeight;
+    userWeights[`${stake.sender.toLowerCase()}:${stake.recipient.toLowerCase()}`] =
+      (userWeights[`${stake.sender.toLowerCase()}:${stake.recipient.toLowerCase()}`] ?? BigInt(0)) +
       stakeWeight;
     
     console.log('==> 3. Updated weights:', {
-      projectWeight: projectWeights[stake.recipient].toString(),
-      userWeight: userWeights[`${stake.sender}:${stake.recipient}`].toString()
+      projectWeight: projectWeights[stake.recipient.toLowerCase()]?.toString() ?? '0',
+      userWeight: userWeights[`${stake.sender.toLowerCase()}:${stake.recipient.toLowerCase()}`]?.toString() ?? '0'
     });
   }
 
@@ -68,20 +68,37 @@ export function calculateRewards(
 
     const matchAmountInToken = BigInt(project.matchAmountInToken);
 
-    const projectRewardPool = (matchAmountInToken / totalMatchAmount) * totalRewardPool;
+    // console.log(project)
+    // console.log("==> 5. matchAmountInToken: ", matchAmountInToken.toString());
+    // console.log("==> 6. totalMatchAmount: ", totalMatchAmount.toString());
+    // console.log("==> 7. totalRewardPool: ", totalRewardPool.toString());
 
-    console.log('==> 5. Processing project:', {
-      projectId: project.projectId,
-      matchAmount: matchAmountInToken,
-      projectRewardPool: projectRewardPool.toString()
-    });
+    const projectRewardPool = (matchAmountInToken * totalRewardPool) / totalMatchAmount;
 
-    for (const stake of stakes.filter(s => s.recipient === project.projectId)) {
-      const userWeight = userWeights[`${stake.sender}:${project.projectId}`];
-      const projectWeight = projectWeights[project.projectId];
-      const userReward = (userWeight / projectWeight) * projectRewardPool;
+    // console.log("==> 8. projectRewardPool: ", projectRewardPool.toString());
 
-      console.log('==> 6. Calculating user reward:', {
+    // console.log('==> 9. Processing project:', {
+    //   projectId: project.projectId,
+    //   matchAmount: matchAmountInToken,
+    //   projectRewardPool: projectRewardPool.toString()
+    // });
+
+    // todo: that wont work, because the projectId is not the recipient. we would need the anchorAddress here. 
+    // Does it make sense to update the staking contract, or should we fetch the anchor from somewhere?
+    for (const stake of stakes.filter(s => s.recipient.toLowerCase() === project.anchorAddress.toLowerCase())) {
+      console.log("====HUHU FUCKER");
+      const userWeight = userWeights[`${stake.sender.toLowerCase()}:${project.anchorAddress.toLowerCase()}`] ?? BigInt(0);
+      const projectWeight = projectWeights[project.anchorAddress.toLowerCase()] ?? BigInt(0);
+
+      // Set reward to 0 if weights are 0, otherwise calculate normally
+      console.log("==> 10. userWeight: ", userWeight.toString());
+      console.log("==> 11. projectWeight: ", projectWeight.toString());
+      console.log("==> 12. projectRewardPool: ", projectRewardPool.toString());
+      const userReward = (userWeight === BigInt(0) || projectWeight === BigInt(0))
+        ? BigInt(0)
+        : (userWeight * BigInt(projectRewardPool)) / projectWeight;
+
+      console.log('==> 10. Calculating user reward:', {
         user: stake.sender,
         projectId: project.projectId,
         userWeight: userWeight.toString(),
@@ -97,7 +114,7 @@ export function calculateRewards(
     }
   }
 
-  console.log('==> 7. Final rewards:', rewards.map(r => ({
+  console.log('==> 11. Final rewards:', rewards.map(r => ({
     ...r,
     reward: r.reward.toString()
   })));

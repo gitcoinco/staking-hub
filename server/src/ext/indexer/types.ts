@@ -124,6 +124,10 @@ export interface MatchingDistribution {
   originalMatchAmountInToken: string;
 }
 
+export interface MatchingDistributionWithAnchorAddress extends MatchingDistribution {
+  anchorAddress: string;
+}
+
 export interface ApplicationRoundQueryResponse {
   application: ApplicationWithRound;
 }

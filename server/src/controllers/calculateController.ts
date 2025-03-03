@@ -40,9 +40,24 @@ export const calculate = async (
       throw new ServerError(`Error fetching matching distribution: ${errorFetchingMatchingDistribution?.message} `);
     }
 
+    const [errorFetchingRoundWithApplications, roundWithApplications] =
+      await catchError(indexerClient.getRoundsWithApplications({
+        chainId,
+        roundIds: [alloPoolId],
+      }));
+
+    if (errorFetchingRoundWithApplications !== undefined || roundWithApplications === undefined || roundWithApplications === null) {
+      logger.error('Error fetching round with applications:', errorFetchingRoundWithApplications);
+      res.status(500).json({ error: 'Internal server error' });
+      throw new ServerError(`Error fetching round with applications: ${errorFetchingRoundWithApplications?.message} `);
+    }
+      
+      
+
     const totalMatchAmount = roundCalculationInfo.matchAmount;
     const matchingDistribution = roundCalculationInfo.matchingDistribution.matchingDistribution;
-    const totalDuration = BigInt(new Date(roundCalculationInfo.donationsEndTime).getTime() / 1000);
+    // todo: change the date string to the actual end time: matchingDistribution.donationsEndTime
+    const totalDuration = BigInt(new Date("Mar-05-2025 08:39:24 AM UTC").getTime() / 1000);
     
     const [errorFetchingStakes, stakes] = await catchError(
       indexerClient.getPoolStakes({
@@ -73,12 +88,17 @@ export const calculate = async (
     ) {
       throw new IsNullError('Missing required parameters');
     }
+    
+    const matchingDistributionWithAnchorAddress = matchingDistribution.map((distribution) => ({
+      ...distribution,
+      anchorAddress: roundWithApplications[0].applications.find((application) => application.projectId.toLowerCase() === distribution.projectId.toLowerCase())?.anchorAddress ?? '',
+    }));
 
     const calculatedRewards = calculateRewards(
       BigInt(totalRewardPool),
       BigInt(totalMatchAmount),
       BigInt(totalDuration),
-      matchingDistribution,
+      matchingDistributionWithAnchorAddress,
       stakes
     );
 
