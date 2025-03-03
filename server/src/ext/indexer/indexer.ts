@@ -14,6 +14,7 @@ import {
   getRoundDistributions,
   getRounds,
   getPoolStakes,
+  getPoolStakesForRecipient,
 } from './queries';
 import type { Logger } from 'winston';
 import { IsNullError, NotFoundError } from '@/errors';
@@ -173,10 +174,27 @@ class IndexerClient {
         requestVariables
       );
 
-      // order by stake amount descending
-      const sortedStakes = response.TokenLock_Locked.sort((a, b) => Number(b.amount) - Number(a.amount));
-  
-      return sortedStakes;
+      return response.TokenLock_Locked;
+    } catch (error) {
+      this.logger.error(`Failed to fetch pool stakes: ${error.message}`, { error });
+      throw error;
+    }
+  }
+
+  async getPoolStakesForRecipient({
+    recipientId
+  }: {
+    recipientId: string;
+  }): Promise<Stake[]> {
+    const requestVariables = { recipientId };
+    try {
+      const response: PoolStakesQueryResponse = await request(
+        this.stakingIndexerEndpoint,
+        getPoolStakesForRecipient,
+        requestVariables
+      );
+
+      return response.TokenLock_Locked;
     } catch (error) {
       this.logger.error(`Failed to fetch pool stakes: ${error.message}`, { error });
       throw error;

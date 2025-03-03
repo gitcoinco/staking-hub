@@ -1,6 +1,6 @@
 import type {
   Project,
-  Stake,
+  StakeCalculation,
   RewardCalculation,
   CalculatedReward,
   MerkleData,
@@ -13,7 +13,7 @@ export function calculateRewards(
   totalMatchAmount: bigint,
   totalDuration: bigint,
   projects: Project[],
-  stakes: Stake[]
+  stakes: StakeCalculation[]
 ): RewardCalculation[] {
   const rewards: RewardCalculation[] = [];
   const projectWeights: Record<string, bigint> = {};

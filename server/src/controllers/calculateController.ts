@@ -4,7 +4,7 @@ import { createLogger } from '@/logger';
 import { catchError, validateRequest } from '@/utils/utils';
 import { Pool } from '@/entity/Pool';
 
-import type { Project, Stake } from '@/types';
+import type { Project, StakeCalculation } from '@/types';
 import { calculateRewards, generateMerkleData } from '@/utils/calculations';
 import poolService from '@/service/PoolService';
 
@@ -98,7 +98,7 @@ const fetchProjects = async (
 const fetchStakes = async (
   chainId: number,
   alloPoolId: string
-): Promise<Stake[]> => {
+): Promise<StakeCalculation[]> => {
   // TODO: Implement actual fetching logic
   return [];
 };

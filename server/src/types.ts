@@ -1,4 +1,4 @@
-export interface Stake {
+export interface StakeCalculation {
     user: string;
     project: string;
     amount: bigint;

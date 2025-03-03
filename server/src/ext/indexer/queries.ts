@@ -71,12 +71,36 @@ export const getRoundDistributions = gql`
 
 export const getPoolStakes = gql`
   query PoolStakes($chainId: numeric!, $poolId: numeric!) {
-    TokenLock_Locked(where: { chainId: { _eq: $chainId }, poolId: { _eq: $poolId } }) {
+    TokenLock_Locked(
+      where: { chainId: { _eq: $chainId }, poolId: { _eq: $poolId } }
+      order_by: {amount: desc}
+    ) {
       chainId
       amount
       poolId
       recipient
       sender
     }
+  }
+`;
+
+export const getPoolStakesForRecipient = gql`
+  query PoolStakesForRecipient($recipientId: String!) {
+    TokenLock_Locked(
+      where: { recipient: { _eq: $recipientId } }
+      order_by: {amount: desc}
+    ) {
+      chainId
+      amount
+      poolId
+      recipient
+      sender
+    }
+
+    # MerkleAirdrop_Claim(where: {claimant: {_eq: $recipientId}}) {
+    #   amount
+    #   claimant
+    #   id
+    # }
   }
 `;
