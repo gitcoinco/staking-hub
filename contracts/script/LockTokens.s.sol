@@ -14,10 +14,8 @@ contract LockTokens is Script {
     uint256[] public amounts = [1e18, 2e18]; // Amount of tokens to lock
     uint256[] public chainIds = [42161, 42161]; // Chain IDs for attestation
     uint256[] public poolIds = [609, 609]; // Pool IDs (changed from roundIds)
-    address[] public recipientIds = [
-        0x83ba0Bd26A20A2c5f4e9157242B0c0eE659b7A2C,
-        0xFEED71D3b495152808BC05E65F113b67Af3bB2c5
-    ]; // Recipient IDs for attestation
+    address[] public recipientIds =
+        [0x83ba0Bd26A20A2c5f4e9157242B0c0eE659b7A2C, 0xFEED71D3b495152808BC05E65F113b67Af3bB2c5]; // Recipient IDs for attestation
 
     function run() public {
         // Get private key from environment
