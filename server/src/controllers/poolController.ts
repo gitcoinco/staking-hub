@@ -12,6 +12,7 @@ const logger = createLogger();
 
 type RoundWithStakes = Round & {
   stakes: Stake[];
+  totalStakesByAnchorAddress: Record<string, string>;
 }
 
 /**
@@ -131,6 +132,9 @@ export const getPoolStakes = async (req: Request, res: Response): Promise<void> 
 
   // group pools by chainId
   const poolsByChainId = pools.reduce<Record<number, Pool[]>>((acc, pool) => {
+    if (!(pool.chainId in acc)) {
+      acc[pool.chainId] = [];
+    }
     acc[pool.chainId].push(pool);
     return acc;
   }, {});
@@ -155,6 +159,7 @@ export const getPoolStakes = async (req: Request, res: Response): Promise<void> 
     _pools.push(...indexerPoolData.map((pool) => ({
       ...pool,
       stakes: [],
+      totalStakesByAnchorAddress: {},
     })));
   }
   
@@ -172,6 +177,13 @@ export const getPoolStakes = async (req: Request, res: Response): Promise<void> 
     }
 
     pool.stakes = stakes;
+    pool.totalStakesByAnchorAddress = stakes.reduce<Record<string, string>>((acc, stake) => {
+      if (!(stake.recipient in acc)) {
+        acc[stake.recipient] = '0';
+      }
+      acc[stake.recipient] = (BigInt(acc[stake.recipient]) + BigInt(stake.amount)).toString();
+      return acc;
+    }, {});
   }
 
   logger.info(`Fetched ${_pools.length} pool data from indexer`);

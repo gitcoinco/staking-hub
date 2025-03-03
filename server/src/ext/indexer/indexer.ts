@@ -11,7 +11,7 @@ import type {
 } from './types';
 import request from 'graphql-request';
 import {
-  getRoundWithApplications,
+  getRoundsWithApplications,
   getRoundMatchingDistributions,
   getRounds,
   getPoolStakes,
@@ -84,7 +84,7 @@ class IndexerClient {
     try {
       const response: RoundApplicationsQueryResponse = await request(
         this.indexerEndpoint,
-        getRoundWithApplications,
+        getRoundsWithApplications,
         requestVariables
       );
 

@@ -11,7 +11,7 @@ contract LockTokens is Script {
     address public constant TOKEN_LOCK_ADDRESS = 0x9Aa6321b15A9c4da0cb5E81B3F3B3b3F6065Aa4a; // Replace with deployed TokenLock address
 
     // Example lock parameters - customize as needed
-    uint256[] public amounts = [1e18, 1e18]; // Amount of tokens to lock
+    uint256[] public amounts = [1e18, 2e18]; // Amount of tokens to lock
     uint256[] public chainIds = [11155111, 11155111]; // Chain IDs for attestation
     uint256[] public poolIds = [614, 614]; // Pool IDs (changed from roundIds)
     address[] public recipientIds =

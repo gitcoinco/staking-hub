@@ -22,6 +22,7 @@ export const getRoundsWithApplications = gql`
       roundMetadataCid
       applications {
         id
+        anchorAddress
         metadata
         metadataCid
         status

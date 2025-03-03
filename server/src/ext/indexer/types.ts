@@ -60,6 +60,7 @@ export interface ProjectMetadata {
 
 export interface Application {
   id: string;
+  anchorAddress: string;
   metadata: ApplicationMetadata;
   metadataCid: string;
   status: Status;
