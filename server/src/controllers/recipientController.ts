@@ -2,10 +2,10 @@ import type { Request, Response } from 'express';
 import poolService from '@/service/PoolService';
 import { catchError, recoverSignerAddress, validateRequest } from '@/utils/utils';
 import { createLogger } from '@/logger';
-import { PoolIdChainId, Signature } from './types';
+import { type PoolIdChainId, type Signature } from './types';
 import { ServerError, UnauthorizedError } from '@/errors';
 import { env } from '@/env';
-import { Hex } from 'viem';
+import { type Hex } from 'viem';
 import { indexerClient } from '@/ext/indexer/indexer';
 
 const logger = createLogger();
@@ -83,21 +83,20 @@ export const getStakesForRecipient = async (req: Request, res: Response): Promis
   validateRequest(req, res);
   
   const { recipientId } = req.params;
-  const { chainId, alloPoolId } = req.query; // Get query parameters
+  const { chainId, alloPoolId } = req.query;
 
   let [error, stakes] = await catchError(indexerClient.getPoolStakesForRecipient({
     recipientId,
   }));
 
   if (error !== undefined || stakes === undefined) {
-    logger.error('Error fetching stakes:', error);
     res.status(500).json({ error: 'Internal server error' });
     throw new ServerError(`Error fetching stakes for recipient ${recipientId}`);
   }
 
   // filter stakes for a specific pool if chainId and alloPoolId are provided
   if (chainId !== undefined && alloPoolId !== undefined) {
-    stakes = stakes.filter((stake) => stake.poolId === alloPoolId && stake.chainId === Number(chainId));
+    stakes = stakes.filter((stake) => stake.poolId === alloPoolId && stake.chainId.toString() === chainId);
   }
 
   res.status(200).json(stakes);

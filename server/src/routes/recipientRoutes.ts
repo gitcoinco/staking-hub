@@ -95,6 +95,6 @@ router.post('/rewards', getRewardsForRecipient);
  *       500:
  *         description: Internal server error
  */
-router.get('/recipient/:recipientId/stakes', getStakesForRecipient);
+router.get('/:recipientId/stakes', getStakesForRecipient);
 
 export default router;
