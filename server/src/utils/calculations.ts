@@ -29,7 +29,7 @@ export function calculateRewards(
 
   // Calculate weights for each stake
   for (const stake of stakes) {
-    const timestampSeconds = BigInt(Math.floor(new Date(stake.db_write_timestamp).getTime() / 1000));
+    const timestampSeconds = BigInt(Math.floor(new Date(stake.blockTimestamp).getTime() / 1000));
     const timeLeft = totalDuration - timestampSeconds;
     const stakeWeight = BigInt(stake.amount) * timeLeft;
 
@@ -37,7 +37,7 @@ export function calculateRewards(
       sender: stake.sender,
       recipient: stake.recipient,
       amount: stake.amount,
-      timestamp: stake.db_write_timestamp,
+      timestamp: stake.blockTimestamp,
       timestampSeconds: timestampSeconds.toString(),
       timeLeft: timeLeft.toString(),
       stakeWeight: stakeWeight.toString()

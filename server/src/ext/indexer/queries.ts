@@ -100,7 +100,7 @@ export const getPoolStakes = gql`
       poolId
       recipient
       sender
-      db_write_timestamp
+      blockTimestamp
     }
   }
 `;
@@ -116,7 +116,7 @@ export const getPoolStakesForRecipient = gql`
       poolId
       recipient
       sender
-      db_write_timestamp
+      blockTimestamp
     }
   }
 `;
