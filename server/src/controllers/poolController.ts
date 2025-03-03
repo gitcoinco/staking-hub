@@ -4,9 +4,9 @@ import { catchError, validateRequest } from '@/utils/utils';
 import { createLogger } from '@/logger';
 
 import { IsNullError, NotFoundError, ServerError } from '@/errors';
-import { PoolIdChainId } from './types';
-import { indexerClient, PoolStakesQueryResponse, Round, Stake } from '@/ext/indexer';
-import { Pool } from '@/entity/Pool';
+import { type PoolIdChainId } from './types';
+import { indexerClient, type Round, type Stake } from '@/ext/indexer';
+import { type Pool } from '@/entity/Pool';
 
 const logger = createLogger();
 
@@ -121,22 +121,21 @@ export const getPoolStakes = async (req: Request, res: Response): Promise<void> 
     pools = _pools;
   } else {
     const [errorFetchingPools, _pool] = await catchError(poolService.getPoolByChainIdAndAlloPoolId(chainId, alloPoolId));
-    if (errorFetchingPools !== undefined || _pool === undefined) {
+    if (errorFetchingPools !== undefined || _pool === undefined || _pool === null) {  
       logger.error('Error fetching pool:', errorFetchingPools);
       res.status(500).json({ error: 'Internal server error' });
       throw new ServerError(`Error fetching pool ${chainId} ${alloPoolId}`);
     }
-    pools = [_pool!];
+    pools = [_pool];
   }
 
   // group pools by chainId
-  const poolsByChainId = pools.reduce((acc, pool) => {
-    acc[pool.chainId] = acc[pool.chainId] || [];
+  const poolsByChainId = pools.reduce<Record<number, Pool[]>>((acc, pool) => {
     acc[pool.chainId].push(pool);
     return acc;
-  }, {} as Record<number, Pool[]>);
+  }, {});
   
-  let _pools: RoundWithStakes[] = [];
+  const _pools: RoundWithStakes[] = [];
 
   // Fetch metadata from grants-stack indexer for those pools
   for (const chainId in poolsByChainId) {
