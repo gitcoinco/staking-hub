@@ -84,7 +84,7 @@ export const getRoundMatchingDistributions = gql`
         id: { equalTo: $roundId }
       }
     ) {
-      matchingDistributions
+      matchingDistribution
     }
   }
 `;

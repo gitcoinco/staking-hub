@@ -132,7 +132,6 @@ class IndexerClient {
         );
         throw new NotFoundError(`No round found for roundId: ${roundId} on chainId: ${chainId}`);
       }
- 
       return response.rounds[0];
     } catch (error) {
       this.logger.error(
