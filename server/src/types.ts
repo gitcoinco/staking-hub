@@ -1,6 +1,5 @@
 export interface RewardCalculation {
   user: string;
-  project: string;
   reward: bigint;
 }
 
