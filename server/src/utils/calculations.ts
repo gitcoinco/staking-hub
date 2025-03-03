@@ -1,25 +1,24 @@
 import type {
-  Project,
   RewardCalculation,
   CalculatedReward,
   MerkleData,
 } from '@/types';
 import { keccak256, encodePacked, type Hex } from 'viem';
 import { MerkleTree } from 'merkletreejs';
-import { type Stake } from '@/ext/indexer';
+import { MatchingDistribution, type Stake } from '@/ext/indexer';
 
 export function calculateRewards(
   totalRewardPool: bigint,
   totalMatchAmount: bigint,
   totalDuration: bigint,
-  projects: Project[],
+  matchingDistribution: MatchingDistribution[],
   stakes: Stake[]
 ): RewardCalculation[] {
   console.log('==> 1. Initial inputs:', {
     totalRewardPool: totalRewardPool.toString(),
     totalMatchAmount: totalMatchAmount.toString(),
     totalDuration: totalDuration.toString(),
-    projectsCount: projects.length,
+    matchingDistributionCount: matchingDistribution.length,
     stakesCount: stakes.length
   });
 
@@ -65,24 +64,26 @@ export function calculateRewards(
   });
 
   // Calculate rewards for each project and user
-  for (const project of projects) {
-    const projectRewardPool =
-      (project.matchAmount / totalMatchAmount) * totalRewardPool;
+  for (const project of matchingDistribution) {
+
+    const matchAmountInToken = BigInt(project.matchAmountInToken);
+
+    const projectRewardPool = (matchAmountInToken / totalMatchAmount) * totalRewardPool;
 
     console.log('==> 5. Processing project:', {
-      projectId: project.id,
-      matchAmount: project.matchAmount,
+      projectId: project.projectId,
+      matchAmount: matchAmountInToken,
       projectRewardPool: projectRewardPool.toString()
     });
 
-    for (const stake of stakes.filter(s => s.recipient === project.id)) {
-      const userWeight = userWeights[`${stake.sender}:${project.id}`];
-      const projectWeight = projectWeights[project.id];
+    for (const stake of stakes.filter(s => s.recipient === project.projectId)) {
+      const userWeight = userWeights[`${stake.sender}:${project.projectId}`];
+      const projectWeight = projectWeights[project.projectId];
       const userReward = (userWeight / projectWeight) * projectRewardPool;
 
       console.log('==> 6. Calculating user reward:', {
         user: stake.sender,
-        projectId: project.id,
+        projectId: project.projectId,
         userWeight: userWeight.toString(),
         projectWeight: projectWeight.toString(),
         userReward: userReward.toString()
@@ -90,7 +91,7 @@ export function calculateRewards(
 
       rewards.push({
         user: stake.sender,
-        project: project.id,
+        project: project.projectId,
         reward: userReward,
       });
     }

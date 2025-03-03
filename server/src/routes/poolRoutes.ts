@@ -106,10 +106,6 @@ router.get('/pools/:chainId/:poolId/rewards', getPoolRewards);
  *                 type: string
  *                 description: The total amount of rewards available for distribution
  *                 example: "1000000000000000000"
- *               totalMatchAmount:
- *                 type: string
- *                 description: The total amount of matching funds
- *                 example: "500000000000000000"
  *               totalDuration:
  *                 type: string
  *                 description: The total duration for the rewards calculation
@@ -118,7 +114,6 @@ router.get('/pools/:chainId/:poolId/rewards', getPoolRewards);
  *               - chainId
  *               - alloPoolId
  *               - totalRewardPool
- *               - totalMatchAmount
  *               - totalDuration
  *     responses:
  *       200:
