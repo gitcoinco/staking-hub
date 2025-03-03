@@ -2,11 +2,10 @@ import type { Request, Response } from 'express';
 import { IsNullError, NotFoundError, ServerError } from '@/errors';
 import { createLogger } from '@/logger';
 import { catchError, validateRequest } from '@/utils/utils';
-import { Pool } from '@/entity/Pool';
 
 import { calculateRewards, generateMerkleData } from '@/utils/calculations';
 import poolService from '@/service/PoolService';
-import { indexerClient, RoundMatchingDistributions } from '@/ext/indexer';
+import { indexerClient } from '@/ext/indexer';
 
 const logger = createLogger();
 
@@ -14,7 +13,6 @@ interface CalculateRequestBody {
   chainId: number;
   alloPoolId: string;
   totalRewardPool: bigint;
-  totalDuration: bigint;
 }
 
 export const calculate = async (
@@ -28,7 +26,6 @@ export const calculate = async (
       chainId,
       alloPoolId,
       totalRewardPool,
-      totalDuration,
     } = req.body;
 
     const [errorFetchingMatchingDistribution, roundCalculationInfo] =
@@ -45,6 +42,7 @@ export const calculate = async (
 
     const totalMatchAmount = roundCalculationInfo.matchAmount;
     const matchingDistribution = roundCalculationInfo.matchingDistribution.matchingDistribution;
+    const totalDuration = BigInt(new Date(roundCalculationInfo.donationsEndTime).getTime() / 1000);
     
     const [errorFetchingStakes, stakes] = await catchError(
       indexerClient.getPoolStakes({
@@ -71,9 +69,7 @@ export const calculate = async (
       alloPoolId === undefined ||
       !Array.isArray(matchingDistribution) ||
       !Array.isArray(stakes) ||
-      typeof totalRewardPool !== 'string' ||
-      typeof totalMatchAmount !== 'string' ||
-      typeof totalDuration !== 'string'
+      typeof totalRewardPool !== 'string'
     ) {
       throw new IsNullError('Missing required parameters');
     }
@@ -90,7 +86,10 @@ export const calculate = async (
 
     const { merkleRoot, rewards } = generateMerkleData(calculatedRewards);
     // Save to database using catchError
-    const pool = new Pool();
+    const pool = await poolService.getPoolByChainIdAndAlloPoolId(chainId, alloPoolId);
+    if (pool === null) {
+      throw new NotFoundError(`Pool ${alloPoolId} not found`);
+    }
     pool.chainId = chainId;
     pool.alloPoolId = alloPoolId;
     pool.rewards = rewards;

@@ -103,6 +103,7 @@ export interface RoundMatchingDistributionsQueryResponse {
 
 export interface RoundMatchingDistributions {
   matchAmount: string;
+  donationsEndTime: string;
   matchingDistribution: {
     usdPrice: number;
     blockNumber: number;

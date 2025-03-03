@@ -84,6 +84,8 @@ export const getRoundMatchingDistributions = gql`
         id: { equalTo: $roundId }
       }
     ) {
+      matchAmount
+      donationsEndTime
       matchingDistribution
     }
   }

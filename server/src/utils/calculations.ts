@@ -5,7 +5,7 @@ import type {
 } from '@/types';
 import { keccak256, encodePacked, type Hex } from 'viem';
 import { MerkleTree } from 'merkletreejs';
-import { MatchingDistribution, type Stake } from '@/ext/indexer';
+import { type MatchingDistribution, type Stake } from '@/ext/indexer';
 
 export function calculateRewards(
   totalRewardPool: bigint,
@@ -28,7 +28,7 @@ export function calculateRewards(
 
   // Calculate weights for each stake
   for (const stake of stakes) {
-    const timestampSeconds = BigInt(Math.floor(new Date(stake.blockTimestamp).getTime() / 1000));
+    const timestampSeconds = BigInt(stake.blockTimestamp.toString());
     const timeLeft = totalDuration - timestampSeconds;
     const stakeWeight = BigInt(stake.amount) * timeLeft;
 
