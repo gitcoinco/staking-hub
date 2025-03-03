@@ -65,20 +65,20 @@ class IndexerClient {
     return IndexerClient.instance;
   }
 
-  async getRoundWithApplications({
+  async getRoundsWithApplications({
     chainId,
-    roundId,
+    roundIds,
   }: {
     chainId: number;
-    roundId: string;
-  }): Promise<RoundWithApplications | null> {
+    roundIds: string[];
+  }): Promise<RoundWithApplications[] | null> {
     this.logger.debug(
-      `Requesting round with applications for roundId: ${roundId}, chainId: ${chainId}`
+      `Requesting round with applications for roundIds: ${roundIds.join(', ')}, chainId: ${chainId}`
     );
 
     const requestVariables = {
       chainId,
-      roundId,
+      roundIds,
     };
 
     try {
@@ -90,17 +90,17 @@ class IndexerClient {
 
       if (response.rounds.length === 0) {
         this.logger.warn(
-          `No round found for roundId: ${roundId} on chainId: ${chainId}`
+          `No round found for roundIds: ${roundIds.toString()} on chainId: ${chainId}`
         );
         return null;
       }
 
-      const round = response.rounds[0];
+      const rounds = response.rounds;
 
       this.logger.info(
-        `Successfully fetched round with ID: ${round.id}, which includes ${round.applications.length} applications`
+        `Successfully fetched rounds with IDs: ${rounds.map((round) => round.id).join(', ')}, which includes ${rounds.map((round) => round.applications.length).join(', ')} applications`
       );
-      return round;
+      return rounds;
     } catch (error) {
       this.logger.error(
         `Failed to fetch round with applications: ${error.message}`,

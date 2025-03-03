@@ -11,6 +11,30 @@ export const getRounds = gql`
   }
 `;
 
+export const getRoundsWithApplications = gql`
+  query RoundsApplications($chainId: Int!, $roundIds: [String!]!) {
+    rounds(
+      filter: { chainId: { equalTo: $chainId }, id: { in: $roundIds } }
+    ) {
+      chainId
+      id
+      roundMetadata
+      roundMetadataCid
+      applications {
+        id
+        metadata
+        metadataCid
+        status
+        projectId
+        project: canonicalProject {
+          metadata
+          metadataCid
+        }
+      }
+    }
+  }
+`;
+
 export const getRoundWithApplications = gql`
   query RoundApplications($chainId: Int!, $roundId: String!) {
     rounds(

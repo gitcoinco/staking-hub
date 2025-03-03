@@ -34,14 +34,14 @@ export const createPool = async (req: Request, res: Response): Promise<void> => 
 
   // Fetch pool data from the indexer
   const [errorFetching, indexerPoolData] = await catchError(
-    indexerClient.getRoundWithApplications({
+    indexerClient.getRoundsWithApplications({
       chainId,
-      roundId: alloPoolId,
+      roundIds: [alloPoolId],
     })
   );
 
   // Handle errors or missing data from the indexer
-  if (errorFetching !== undefined || indexerPoolData == null) {
+  if (errorFetching !== undefined || indexerPoolData === null || indexerPoolData === undefined || indexerPoolData.length === 0) {
     logger.warn(
       `No pool found for chainId: ${chainId}, alloPoolId: ${alloPoolId}`
     );
@@ -140,13 +140,13 @@ export const getPoolStakes = async (req: Request, res: Response): Promise<void> 
   // Fetch metadata from grants-stack indexer for those pools
   for (const chainId in poolsByChainId) {
     const [errorFetching, indexerPoolData] = await catchError(
-      indexerClient.getRounds({
+      indexerClient.getRoundsWithApplications({
         chainId: parseInt(chainId),
         roundIds: poolsByChainId[chainId].map((pool) => pool.alloPoolId),
       })
     );
     
-    if (errorFetching !== undefined || indexerPoolData === undefined) {
+    if (errorFetching !== undefined || indexerPoolData === undefined || indexerPoolData === null || indexerPoolData.length === 0) {
       logger.error('Error fetching indexer pool data:', errorFetching);
       res.status(500).json({ error: 'Internal server error' });
       return;

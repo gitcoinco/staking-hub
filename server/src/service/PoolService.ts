@@ -1,4 +1,4 @@
-import { Reward, type Pool } from '@/entity/Pool';
+import { type Reward, type Pool } from '@/entity/Pool';
 import { AlreadyExistsError } from '@/errors';
 import { poolRepository } from '@/repository';
 
