@@ -2,38 +2,57 @@ import { createLogger } from '@/logger';
 import type {
   RoundApplicationsQueryResponse,
   RoundWithApplications,
-  ApplicationRoundQueryResponse,
-  ApplicationWithRound,
-  ManagerRolesResponse,
+  RoundMatchingDistributionsQueryResponse,
+  Round,
+  GetRoundsQueryResponse,
+  PoolStakesQueryResponse,
+  Stake,
+  RoundMatchingDistributions,
 } from './types';
 import request from 'graphql-request';
 import {
-  getRoundWithApplications,
-  getApplicationWithRound,
-  getRoundManager,
+  getRoundsWithApplications,
+  getRoundMatchingDistributions,
+  getRounds,
+  getPoolStakes,
+  getPoolStakesForRecipient,
 } from './queries';
 import type { Logger } from 'winston';
-import { IsNullError } from '@/errors';
+import { IsNullError, NotFoundError } from '@/errors';
 import { env } from '@/env';
 
 class IndexerClient {
   private static instance: IndexerClient | null = null;
   private readonly indexerEndpoint: string;
+  private readonly stakingIndexerEndpoint: string;
   private readonly logger: Logger;
 
   private constructor() {
     this.indexerEndpoint = env.INDEXER_URL ?? '';
+    this.stakingIndexerEndpoint = env.STAKING_INDEXER_URL ?? '';
 
     if (this.indexerEndpoint === '') {
       throw new IsNullError('INDEXER_URL is not set');
+    }
+
+    if (this.stakingIndexerEndpoint === '') {
+      throw new IsNullError('STAKING_INDEXER_URL is not set');
     }
 
     if (this.indexerEndpoint.endsWith('/')) {
       this.indexerEndpoint = this.indexerEndpoint.slice(0, -1);
     }
 
+    if (this.stakingIndexerEndpoint.endsWith('/')) {
+      this.stakingIndexerEndpoint = this.stakingIndexerEndpoint.slice(0, -1);
+    }
+
     if (!this.indexerEndpoint.endsWith('/graphql')) {
       this.indexerEndpoint += '/graphql';
+    }
+
+    if (!this.stakingIndexerEndpoint.endsWith('/graphql')) {
+      this.stakingIndexerEndpoint += '/graphql';
     }
 
     this.logger = createLogger('Indexer.ts');
@@ -46,91 +65,42 @@ class IndexerClient {
     return IndexerClient.instance;
   }
 
-  async getRoundManager({
+  async getRoundsWithApplications({
     chainId,
-    alloPoolId,
+    roundIds,
   }: {
     chainId: number;
-    alloPoolId: string;
-  }): Promise<string[]> {
+    roundIds: string[];
+  }): Promise<RoundWithApplications[] | null> {
     this.logger.debug(
-      `Requesting round manager for poolId: ${alloPoolId}, chainId: ${chainId}`
+      `Requesting round with applications for roundIds: ${roundIds.join(', ')}, chainId: ${chainId}`
     );
 
     const requestVariables = {
       chainId,
-      alloPoolId,
-    };
-
-    try {
-      const response: ManagerRolesResponse = await request(
-        this.indexerEndpoint,
-        getRoundManager,
-        requestVariables
-      );
-
-      if (response.rounds.length === 0) {
-        this.logger.warn(
-          `No round found for poolId: ${alloPoolId} on chainId: ${chainId}`
-        );
-        return [];
-      }
-
-      const round = response.rounds[0];
-
-      if (round.roles.length === 0) {
-        this.logger.warn(
-          `No manager found for poolId: ${alloPoolId} on chainId: ${chainId}`
-        );
-        return [];
-      }
-
-      this.logger.info(`Successfully fetched round manager`);
-      return round.roles.map(role => role.address);
-    } catch (error) {
-      this.logger.error(`Failed to fetch round manager: ${error.message}`, {
-        error,
-      });
-      throw error;
-    }
-  }
-
-  async getRoundWithApplications({
-    chainId,
-    roundId,
-  }: {
-    chainId: number;
-    roundId: string;
-  }): Promise<RoundWithApplications | null> {
-    this.logger.debug(
-      `Requesting round with applications for roundId: ${roundId}, chainId: ${chainId}`
-    );
-
-    const requestVariables = {
-      chainId,
-      roundId,
+      roundIds,
     };
 
     try {
       const response: RoundApplicationsQueryResponse = await request(
         this.indexerEndpoint,
-        getRoundWithApplications,
+        getRoundsWithApplications,
         requestVariables
       );
 
       if (response.rounds.length === 0) {
         this.logger.warn(
-          `No round found for roundId: ${roundId} on chainId: ${chainId}`
+          `No round found for roundIds: ${roundIds.toString()} on chainId: ${chainId}`
         );
         return null;
       }
 
-      const round = response.rounds[0];
+      const rounds = response.rounds;
 
       this.logger.info(
-        `Successfully fetched round with ID: ${round.id}, which includes ${round.applications.length} applications`
+        `Successfully fetched rounds with IDs: ${rounds.map((round) => round.id).join(', ')}, which includes ${rounds.map((round) => round.applications.length).join(', ')} applications`
       );
-      return round;
+      return rounds;
     } catch (error) {
       this.logger.error(
         `Failed to fetch round with applications: ${error.message}`,
@@ -140,45 +110,105 @@ class IndexerClient {
     }
   }
 
-  async getApplicationWithRound({
+  async getRoundMatchingDistributions({
     chainId,
     roundId,
-    applicationId,
   }: {
     chainId: number;
     roundId: string;
-    applicationId: string;
-  }): Promise<ApplicationWithRound | null> {
-    const requestVariables = {
-      chainId,
-      roundId,
-      applicationId,
-    };
+  }): Promise<RoundMatchingDistributions> {
+    const requestVariables = { chainId, roundId };
 
     try {
-      const response: ApplicationRoundQueryResponse = await request(
+      const response: RoundMatchingDistributionsQueryResponse = await request(
         this.indexerEndpoint,
-        getApplicationWithRound,
+        getRoundMatchingDistributions,
         requestVariables
       );
 
-      const application = response.application;
-
-      if (application == null) {
+      if (response.rounds.length === 0) {
         this.logger.warn(
-          `No application found for applicationId: ${applicationId} in roundId: ${roundId} on chainId: ${chainId}`
+          `No round found for roundId: ${roundId} on chainId: ${chainId}`
         );
-        return null;
+        throw new NotFoundError(`No round found for roundId: ${roundId} on chainId: ${chainId}`);
       }
-      return response.application;
+      return response.rounds[0];
     } catch (error) {
       this.logger.error(
-        `Failed to fetch round with single application: ${error.message}`,
-        { error }
+        `Failed to fetch round distributions: ${error.message}`,
+        {
+          error,
+        }
       );
       throw error;
     }
   }
+
+  async getRounds({
+    chainId,
+    roundIds,
+  }: {
+    chainId: number;
+    roundIds: string[];
+  }): Promise<Round[]> {
+    const requestVariables = { chainId, roundIds };
+    try {
+      const response: GetRoundsQueryResponse = await request(
+        this.indexerEndpoint,
+        getRounds,
+        requestVariables
+      );
+
+      return response.rounds;
+    } catch (error) {
+      this.logger.error(`Failed to fetch rounds: ${error.message}`, { error });
+      throw error;
+    }
+  }
+
+  async getPoolStakes({
+    chainId,
+    poolId,
+  }: {
+    chainId: number;
+    poolId: number;
+  }): Promise<Stake[]> {
+    const requestVariables = { chainId, poolId };
+    try {
+      const response: PoolStakesQueryResponse = await request(
+        this.stakingIndexerEndpoint,
+        getPoolStakes,
+        requestVariables
+      );
+
+      return response.TokenLock_Locked;
+    } catch (error) {
+      this.logger.error(`Failed to fetch pool stakes: ${error.message}`, { error });
+      throw error;
+    }
+  }
+
+  async getPoolStakesForRecipient({
+    recipientId
+  }: {
+    recipientId: string;
+  }): Promise<Stake[]> {
+    const requestVariables = { recipientId };
+    try {
+      const response: PoolStakesQueryResponse = await request(
+        this.stakingIndexerEndpoint,
+        getPoolStakesForRecipient,
+        requestVariables
+      );
+
+      return response.TokenLock_Locked;
+    } catch (error) {
+      this.logger.error(`Failed to fetch pool stakes: ${error.message}`, { error });
+      throw error;
+    }
+  }
+
 }
+
 
 export const indexerClient = IndexerClient.getInstance();

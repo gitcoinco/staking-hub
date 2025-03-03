@@ -52,29 +52,3 @@ export async function recoverSignerAddress<T>(
     signature,
   });
 }
-
-export async function isPoolManager<T>(
-  obj: T,
-  signature: Hex,
-  chainId: number,
-  alloPoolId: string
-): Promise<boolean> {
-  const validAddresses = await indexerClient.getRoundManager({
-    chainId,
-    alloPoolId,
-  });
-  if (env.NODE_ENV === 'development' && signature === '0xdeadbeef') {
-    logger.info('Skipping signature check in development mode');
-    return true;
-  }
-  try {
-    const address = await recoverSignerAddress(obj, signature);
-    logger.info(`Recovered address: ${address}`);
-    return validAddresses.some(
-      addr => addr.toLowerCase() === address.toLowerCase()
-    );
-  } catch {
-    logger.warn('Failed to recover signer address');
-    return false;
-  }
-}

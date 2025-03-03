@@ -60,6 +60,7 @@ export interface ProjectMetadata {
 
 export interface Application {
   id: string;
+  anchorAddress: string;
   metadata: ApplicationMetadata;
   metadataCid: string;
   status: Status;
@@ -70,11 +71,14 @@ export interface Application {
   };
 }
 
-export interface RoundWithApplications {
+export interface Round {
   chainId: number;
   id: string;
   roundMetadata: RoundMetadata;
   roundMetadataCid: string;
+}
+
+export interface RoundWithApplications extends Round {
   applications: Application[];
 }
 
@@ -93,14 +97,49 @@ export interface ApplicationWithRound {
   };
 }
 
+export interface RoundMatchingDistributionsQueryResponse {
+  rounds: RoundMatchingDistributions[];
+}
+
+export interface RoundMatchingDistributions {
+  matchAmount: string;
+  matchingDistribution: {
+    usdPrice: number;
+    blockNumber: number;
+    blockTimestamp: string;
+    usdPriceTimestampAt: string;
+    matchingDistribution: MatchingDistribution[];
+  };
+}
+
+export interface MatchingDistribution {
+  projectId: string;
+  projectName: string;
+  applicationId: string;
+  contributionsCount: number;
+  matchAmountInToken: string;
+  matchPoolPercentage: number;
+  projectPayoutAddress: string;
+  originalMatchAmountInToken: string;
+}
+
 export interface ApplicationRoundQueryResponse {
   application: ApplicationWithRound;
 }
 
-export interface ManagerRolesResponse {
-  rounds: Array<{
-    roles: Array<{
-      address: string;
-    }>;
-  }>;
+export interface GetRoundsQueryResponse {
+  rounds: Round[];
+}
+
+export interface Stake {
+  chainId: number;
+  amount: string;
+  poolId: string;
+  recipient: string;
+  sender: string;
+  blockTimestamp: string;
+}
+
+export interface PoolStakesQueryResponse {
+  TokenLock_Locked: Stake[];
 }

@@ -29,6 +29,7 @@ type TokenLock_Locked {
   poolId: BigInt!
   recipient: String!
   amount: BigInt!
+  blockTimestamp: Int!
 }
 
 type MerkleAirdrop_Clawback {
