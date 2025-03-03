@@ -101,6 +101,16 @@ const fetchProjects = async (
   chainId: number,
   alloPoolId: string
 ): Promise<Project[]> => {
-  // TODO: Implement actual fetching logic
-  return [];
+
+  const pool = await indexerClient.getRoundMatchingDistributions({
+    chainId,
+    roundId: alloPoolId,
+  });
+
+  const projects = pool.matchingDistribution.matchingDistribution.map((distribution) => ({
+    id: distribution.projectId,
+    matchAmount: BigInt(distribution.matchAmountInToken),
+  }));
+
+  return projects;
 };

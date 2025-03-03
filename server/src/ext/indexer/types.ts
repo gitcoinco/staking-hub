@@ -96,18 +96,34 @@ export interface ApplicationWithRound {
   };
 }
 
-export interface ApplicationRoundQueryResponse {
-  application: ApplicationWithRound;
+export interface RoundMatchingDistributionsQueryResponse {
+  rounds: RoundMatchingDistributions[];
 }
 
-export interface RoundDistributionsQueryResponse {
-  rounds: Array<{
-    totalDistributed: string;
-    applications: Array<{
-      id: string;
-      distributionTransaction: string;
-    }>;
-  }>;
+export interface RoundMatchingDistributions {
+  matchAmount: string;
+  matchingDistribution: {
+    usdPrice: number;
+    blockNumber: number;
+    blockTimestamp: string;
+    usdPriceTimestampAt: string;
+    matchingDistribution: MatchingDistribution[];
+  };
+}
+
+export interface MatchingDistribution {
+  projectId: string;
+  projectName: string;
+  applicationId: string;
+  contributionsCount: number;
+  matchAmountInToken: string;
+  matchPoolPercentage: number;
+  projectPayoutAddress: string;
+  originalMatchAmountInToken: string;
+}
+
+export interface ApplicationRoundQueryResponse {
+  application: ApplicationWithRound;
 }
 
 export interface GetRoundsQueryResponse {

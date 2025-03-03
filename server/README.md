@@ -74,7 +74,7 @@ GET Endpoint
    - kurt -> who fetches application metadata ?
 
 
-- router.get('/recipient/:recipientId/stakes?chainId&alloPoolId', getStakesForRecipient);
+- `router.get('/recipient/:recipientId/stakes?chainId&alloPoolId', getStakesForRecipient);`
    - get all stakes for a recipient for all finalised pools
    - get all stakes for a recipient for a given finalised pool
    - figma: `gtc staker/dash/connected`,
@@ -86,7 +86,7 @@ POST Endpoint
    - create a pool 
    - will be called manually by admin
 
-- router.post('/pools/calculate', calculate);
+- `router.post('/pools/calculate', calculate);`
    - calculate the rewards for the stakers of a given pool which been fianlise 
    - will be called manually by admin
 

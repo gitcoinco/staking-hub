@@ -2,16 +2,17 @@ import { createLogger } from '@/logger';
 import type {
   RoundApplicationsQueryResponse,
   RoundWithApplications,
-  RoundDistributionsQueryResponse,
+  RoundMatchingDistributionsQueryResponse,
   Round,
   GetRoundsQueryResponse,
   PoolStakesQueryResponse,
   Stake,
+  RoundMatchingDistributions,
 } from './types';
 import request from 'graphql-request';
 import {
   getRoundWithApplications,
-  getRoundDistributions,
+  getRoundMatchingDistributions,
   getRounds,
   getPoolStakes,
   getPoolStakesForRecipient,
@@ -109,23 +110,30 @@ class IndexerClient {
     }
   }
 
-  async getRoundDistributions({
+  async getRoundMatchingDistributions({
     chainId,
     roundId,
   }: {
     chainId: number;
     roundId: string;
-  }): Promise<RoundDistributionsQueryResponse> {
+  }): Promise<RoundMatchingDistributions> {
     const requestVariables = { chainId, roundId };
 
     try {
-      const response: RoundDistributionsQueryResponse = await request(
+      const response: RoundMatchingDistributionsQueryResponse = await request(
         this.indexerEndpoint,
-        getRoundDistributions,
+        getRoundMatchingDistributions,
         requestVariables
       );
+
+      if (response.rounds.length === 0) {
+        this.logger.warn(
+          `No round found for roundId: ${roundId} on chainId: ${chainId}`
+        );
+        throw new NotFoundError(`No round found for roundId: ${roundId} on chainId: ${chainId}`);
+      }
  
-      return response;
+      return response.rounds[0];
     } catch (error) {
       this.logger.error(
         `Failed to fetch round distributions: ${error.message}`,
@@ -200,6 +208,7 @@ class IndexerClient {
       throw error;
     }
   }
+
 }
 
 
