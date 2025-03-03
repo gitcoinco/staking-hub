@@ -80,6 +80,7 @@ export const getPoolStakes = gql`
       poolId
       recipient
       sender
+      db_write_timestamp
     }
   }
 `;
@@ -95,12 +96,7 @@ export const getPoolStakesForRecipient = gql`
       poolId
       recipient
       sender
+      db_write_timestamp
     }
-
-    # MerkleAirdrop_Claim(where: {claimant: {_eq: $recipientId}}) {
-    #   amount
-    #   claimant
-    #   id
-    # }
   }
 `;

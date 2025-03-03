@@ -1,12 +1,13 @@
 import type { Request, Response } from 'express';
-import { IsNullError } from '@/errors';
+import { IsNullError, NotFoundError, ServerError } from '@/errors';
 import { createLogger } from '@/logger';
 import { catchError, validateRequest } from '@/utils/utils';
 import { Pool } from '@/entity/Pool';
 
-import type { Project, StakeCalculation } from '@/types';
+import type { Project } from '@/types';
 import { calculateRewards, generateMerkleData } from '@/utils/calculations';
 import poolService from '@/service/PoolService';
+import { indexerClient } from '@/ext/indexer';
 
 const logger = createLogger();
 
@@ -40,12 +41,21 @@ export const calculate = async (
     logger.error('Error fetching projects:', errorFetchingProjects);
   }
 
-  const [errorFetchingStakes, stakes] = await catchError(
-    fetchStakes(chainId, alloPoolId)
-  );
+  const [errorFetchingStakes, stakes] = await catchError(indexerClient.getPoolStakes({
+    chainId,
+    poolId: Number(alloPoolId),
+  }));
 
-  if (errorFetchingStakes !== null) {
+  if (errorFetchingStakes !== undefined) {
     logger.error('Error fetching stakes:', errorFetchingStakes);
+    res.status(500).json({ error: 'Internal server error' });
+    throw new ServerError(`Error fetching stakes for pool ${alloPoolId}`);
+  }
+
+  if (stakes === undefined || stakes.length === 0) {
+    logger.error('No stakes found for pool:', alloPoolId);
+    res.status(404).json({ error: 'No stakes found for pool' });
+    throw new NotFoundError(`No stakes found for pool ${alloPoolId}`);
   }
 
   // Validate required parameters
@@ -91,14 +101,6 @@ const fetchProjects = async (
   chainId: number,
   alloPoolId: string
 ): Promise<Project[]> => {
-  // TODO: Implement actual fetching logic
-  return [];
-};
-
-const fetchStakes = async (
-  chainId: number,
-  alloPoolId: string
-): Promise<StakeCalculation[]> => {
   // TODO: Implement actual fetching logic
   return [];
 };

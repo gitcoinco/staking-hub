@@ -1,19 +1,19 @@
 import type {
   Project,
-  StakeCalculation,
   RewardCalculation,
   CalculatedReward,
   MerkleData,
 } from '@/types';
 import { keccak256, encodePacked, type Hex } from 'viem';
 import { MerkleTree } from 'merkletreejs';
+import { Stake } from '@/ext/indexer';
 
 export function calculateRewards(
   totalRewardPool: bigint,
   totalMatchAmount: bigint,
   totalDuration: bigint,
   projects: Project[],
-  stakes: StakeCalculation[]
+  stakes: Stake[]
 ): RewardCalculation[] {
   const rewards: RewardCalculation[] = [];
   const projectWeights: Record<string, bigint> = {};
@@ -21,13 +21,13 @@ export function calculateRewards(
 
   // Calculate weights for each stake
   for (const stake of stakes) {
-    const timeLeft = totalDuration - BigInt(stake.timestamp);
+    const timeLeft = totalDuration - BigInt(stake.db_write_timestamp);
     const stakeWeight = BigInt(stake.amount) * timeLeft;
 
-    projectWeights[stake.project] =
-      (projectWeights[stake.project] ?? BigInt(0)) + stakeWeight;
-    userWeights[`${stake.user}:${stake.project}`] =
-      (userWeights[`${stake.user}:${stake.project}`] ?? BigInt(0)) +
+    projectWeights[stake.recipient] =
+      (projectWeights[stake.recipient] ?? BigInt(0)) + stakeWeight;
+    userWeights[`${stake.sender}:${stake.recipient}`] =
+      (userWeights[`${stake.sender}:${stake.recipient}`] ?? BigInt(0)) +
       stakeWeight;
   }
 
@@ -36,13 +36,13 @@ export function calculateRewards(
     const projectRewardPool =
       (project.matchAmount / totalMatchAmount) * totalRewardPool;
 
-    for (const stake of stakes.filter(s => s.project === project.id)) {
-      const userWeight = userWeights[`${stake.user}:${project.id}`];
+    for (const stake of stakes.filter(s => s.recipient === project.id)) {
+      const userWeight = userWeights[`${stake.sender}:${project.id}`];
       const projectWeight = projectWeights[project.id];
       const userReward = (userWeight / projectWeight) * projectRewardPool;
 
       rewards.push({
-        user: stake.user,
+        user: stake.sender,
         project: project.id,
         reward: userReward,
       });

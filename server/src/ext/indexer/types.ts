@@ -120,6 +120,7 @@ export interface Stake {
   poolId: string;
   recipient: string;
   sender: string;
+  db_write_timestamp: string;
 }
 
 export interface PoolStakesQueryResponse {
