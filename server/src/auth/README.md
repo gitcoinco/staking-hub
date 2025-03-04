@@ -1,32 +1,39 @@
-
 # SIWE Authentication
 
-## Install required dependencies
+Sign-In with Ethereum (SIWE) allows users to authenticate using their Ethereum wallet. This implementation provides a secure way to verify wallet ownership and manage user sessions.
+
+## Installation
+
+Install the required dependencies:
 
 ```bash
-npm install express-session siwe @types/express-session
+npm install express-session siwe @types/express-session express-rate-limit
 ```
 
-## ENV Variables
+## Configuration
 
-```
+### Environment Variables
+
+```env
 SESSION_SECRET=your-super-secret-key-change-this-in-production
 FRONTEND_URL=http://localhost:3000
 NODE_ENV=development
 ```
 
-If you are running in development mode, you can set the `NODE_ENV` to `development` to bypass the authentication check.
+> **Note**: Setting `NODE_ENV=development` bypasses authentication checks during development.
 
-## Setup CORS
+### CORS Setup
+
+Enable Cross-Origin Resource Sharing (CORS) with credentials:
 
 ```javascript
 app.use(cors({
-  credentials: true, // Important for SIWE authentication
+  credentials: true,  // Required for SIWE authentication
   origin: process.env.FRONTEND_URL ?? 'http://localhost:3000'
 }));
 ```
 
-## Configure SIWE Auth
+### Initialize SIWE Auth
 
 ```javascript
 import { configureSiweAuth } from '@/auth/siwe';
@@ -34,79 +41,81 @@ import { configureSiweAuth } from '@/auth/siwe';
 configureSiweAuth(app);
 ```
 
-## Available Endpoints
+## API Endpoints
 
 ### GET `/auth/nonce`
+Generates a cryptographic nonce for SIWE message signing.
 
-Generates a new nonce for SIWE message signing.
-
-- Returns: Plain text nonce
+**Response**: Plain text nonce
 
 ### POST `/auth/verify`
-
 Verifies the signed SIWE message.
 
-- Body:
-  
-  ```typescript
-  {
-    message: string;    // The SIWE message
-    signature: string;  // The signature of the message
-  }
-  ```
+**Request Body**:
+```typescript
+{
+  message: string;    // The SIWE message
+  signature: string;  // The signature of the message
+}
+```
 
-- Returns: 
-  - 200: `true` if verification successful
-  - 422: Invalid signature or message
-  - 440: Expired message
-  - 500: Other errors
+**Response Codes**:
+- `200`: Verification successful (`true`)
+- `422`: Invalid signature or message
+- `440`: Message expired
+- `500`: Server error
 
-## Protecting Routes
+## Route Protection
 
-Use the `requireAuth` middleware to protect routes:
+### Basic Authentication
+Protect routes using the `requireAuth` middleware:
 
 ```typescript
 import { requireAuth } from './auth/siwe';
+
 router.get('/protected-route', requireAuth, (req, res) => {
-    // Only authenticated users can access this route
     const userAddress = req.session.siwe.address;
     res.json({ address: userAddress });
 });
 ```
 
-Use the `requireAuthMatchAddress` middleware to protect routes:
+### Address-Matched Authentication
+Ensure the authenticated user matches a specific address:
 
 ```typescript
 import { requireAuthMatchAddress } from './auth/siwe';
-// For route parameters
+
+// Route parameter matching
 app.get('/api/users/:address/profile', 
   requireAuthMatchAddress({ param: 'address' }), 
   (req, res) => {
-    // Handler code
+    // Only accessible if authenticated address matches :address
 });
 
-// For body parameters
+// Request body matching
 app.post('/api/update-profile',
   requireAuthMatchAddress({ body: 'walletAddress' }), 
   (req, res) => {
-    // Handler code
+    // Only accessible if authenticated address matches body.walletAddress
 });
-
 ```
 
-## Frontend Integration Example
+## Frontend Implementation
+
+Complete authentication flow example:
 
 ```typescript
 async function signInWithEthereum() {
-    // 1. Get nonce
+    // 1. Request nonce from server
     const nonceRes = await fetch('/auth/nonce', {
         credentials: 'include'
     });
     const nonce = await nonceRes.text();
+
     // 2. Create and sign SIWE message
     const message = new SiweMessage({
         domain: window.location.host,
-        address: account, // User's wallet address
+        address: account,           // User's wallet address
         statement: 'Sign in with Ethereum.',
         uri: window.location.origin,
         version: '1',
@@ -114,20 +123,27 @@ async function signInWithEthereum() {
         nonce: nonce
     });
     const signature = await signer.signMessage(message.prepareMessage());
-    // 3. Verify signature
+
+    // 3. Verify signature with server
     const verifyRes = await fetch('/auth/verify', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-            message,
-            signature
-        })
+        body: JSON.stringify({ message, signature })
     });
+
     if (!verifyRes.ok) throw new Error('Error verifying signature');
     return verifyRes.ok;
 }
 ```
+
+## Security Considerations
+
+1. Always use HTTPS in production
+2. Change the `SESSION_SECRET` to a strong, unique value
+3. Implement rate limiting for `/auth/nonce` and `/auth/verify` endpoints
+4. Consider implementing session expiration
+5. Validate chain ID to prevent cross-chain replay attacks
 

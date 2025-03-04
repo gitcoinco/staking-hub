@@ -1,6 +1,7 @@
-import { type Request, type Response, type Express } from 'express';
+import { Router, type Request, type Response, type RequestHandler } from 'express';
 import Session from 'express-session';
 import { generateNonce, SiweMessage, SiweErrorType } from 'siwe';
+import rateLimit from 'express-rate-limit';
 
 declare module 'express-session' {
   interface SessionData {
@@ -14,25 +15,127 @@ export interface AddressLocation {
     body?: string;
 }
 
-export const configureSiweAuth = (app: Express): void => {
-  app.use(
+const router = Router();
+
+export const configureSiweAuth = (): void => {
+  // Configure rate limiters
+  const nonceRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: { message: 'Too many nonce requests, please try again later' }
+  });
+
+  const verifyRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 50, // Limit each IP to 50 verification attempts per windowMs
+    message: { message: 'Too many verification attempts, please try again later' }
+  });
+
+  router.use(
     Session({
       name: 'siwe-session',
       secret: process.env.SESSION_SECRET ?? 'your-secret-key',
       resave: true,
       saveUninitialized: true,
-      cookie: { secure: process.env.NODE_ENV === 'production', sameSite: true }
+      cookie: { 
+        secure: process.env.NODE_ENV !== 'development', 
+        sameSite: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      }
     })
   );
 
-  // SIWE routes
-  app.get('/auth/nonce', async (req: Request, res: Response) => {
+  /**
+   * @swagger
+   * /auth/nonce:
+   *   get:
+   *     tags:
+   *       - Authentication
+   *     summary: Generate a nonce for SIWE authentication
+   *     description: Generates and returns a new nonce for Sign-In with Ethereum
+   *     responses:
+   *       200:
+   *         description: Nonce generated successfully
+   *         content:
+   *           text/plain:
+   *             schema:
+   *               type: string
+   *       429:
+   *         description: Too many requests
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   */
+  router.get('/nonce', nonceRateLimiter as RequestHandler, async (req: Request, res: Response) => {
     req.session.nonce = generateNonce();
     res.setHeader('Content-Type', 'text/plain');
     res.status(200).send(req.session.nonce);
   });
 
-  app.post('/auth/verify', async (req: Request, res: Response) => {
+  /**
+   * @swagger
+   * /auth/verify:
+   *   post:
+   *     tags:
+   *       - Authentication
+   *     summary: Verify SIWE message and signature
+   *     description: Verifies the Sign-In with Ethereum message and signature
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - message
+   *               - signature
+   *             properties:
+   *               message:
+   *                 type: string
+   *                 description: The SIWE message
+   *               signature:
+   *                 type: string
+   *                 description: The ethereum signature
+   *     responses:
+   *       200:
+   *         description: Verification successful
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: boolean
+   *       422:
+   *         description: Invalid input or signature
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *       440:
+   *         description: Message expired
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *       500:
+   *         description: Server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   */
+  router.post('/verify', verifyRateLimiter as RequestHandler, async (req: Request, res: Response) => {
     try {
       if (req.body.message === undefined || req.body.message === null) {
         res.status(422).json({ message: 'Expected prepareMessage object as body.' });
@@ -71,6 +174,12 @@ export const configureSiweAuth = (app: Express): void => {
   });
 };
 
+/**
+ * Middleware to check if user is authenticated
+ * @param req Express request
+ * @param res Express response
+ * @param next Next middleware function
+ */
 export const requireAuth = (
   req: Request,
   res: Response,
@@ -88,6 +197,11 @@ export const requireAuth = (
   }
 }; 
 
+/**
+ * Middleware to check if authenticated user matches the target address
+ * @param addressLocation Location of the address to check (in params or body)
+ * @returns Middleware function
+ */
 export const requireAuthMatchAddress = (addressLocation: AddressLocation) => {
     return (req: Request, res: Response, next: () => void): void => {
       if (process.env.NODE_ENV === 'development') {
@@ -123,3 +237,5 @@ export const requireAuthMatchAddress = (addressLocation: AddressLocation) => {
       next();
     };
 };
+
+export default router;

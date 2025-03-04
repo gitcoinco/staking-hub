@@ -69,7 +69,7 @@ app.use(
 app.use(express.json());
 
 // Configure SIWE authentication
-configureSiweAuth(app);
+configureSiweAuth();
 
 // Configure global error handling
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
