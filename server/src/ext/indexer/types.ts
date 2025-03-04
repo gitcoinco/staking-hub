@@ -65,6 +65,8 @@ export interface Application {
   metadataCid: string;
   status: Status;
   projectId: string;
+  totalDonationsCount: number;
+  totalAmountDonatedInUsd: number;
   project: {
     metadata: ProjectMetadata;
     metadataCid: string;

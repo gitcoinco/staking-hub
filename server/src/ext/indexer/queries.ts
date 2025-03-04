@@ -27,6 +27,8 @@ export const getRoundsWithApplications = gql`
         metadataCid
         status
         projectId
+        totalDonationsCount
+        totalAmountDonatedInUsd
         project: canonicalProject {
           metadata
           metadataCid

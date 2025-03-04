@@ -88,7 +88,7 @@ export const calculate = async (
     ) {
       throw new IsNullError('Missing required parameters');
     }
-    
+
     const matchingDistributionWithAnchorAddress = matchingDistribution.map((distribution) => ({
       ...distribution,
       anchorAddress: roundWithApplications[0].applications.find((application) => application.projectId.toLowerCase() === distribution.projectId.toLowerCase())?.anchorAddress ?? '',
@@ -110,8 +110,7 @@ export const calculate = async (
     if (pool === null) {
       throw new NotFoundError(`Pool ${alloPoolId} not found`);
     }
-    pool.chainId = chainId;
-    pool.alloPoolId = alloPoolId;
+
     pool.rewards = rewards;
     pool.merkleRoot = merkleRoot;
 
@@ -119,8 +118,9 @@ export const calculate = async (
 
     const [error] = await catchError(poolService.savePool(pool));
 
-    if (error !== null) {
+    if (error !== undefined ) {
       logger.error('Error saving rewards to database:', error);
+      console.log(JSON.stringify(error, null, 2));
     }
 
     res.status(200).json({ success: true, rewards });
