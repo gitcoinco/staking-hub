@@ -65,6 +65,8 @@ export interface Application {
   metadataCid: string;
   status: Status;
   projectId: string;
+  totalDonationsCount: number;
+  totalAmountDonatedInUsd: number;
   project: {
     metadata: ProjectMetadata;
     metadataCid: string;
@@ -103,6 +105,7 @@ export interface RoundMatchingDistributionsQueryResponse {
 
 export interface RoundMatchingDistributions {
   matchAmount: string;
+  donationsEndTime: string;
   matchingDistribution: {
     usdPrice: number;
     blockNumber: number;
@@ -121,6 +124,10 @@ export interface MatchingDistribution {
   matchPoolPercentage: number;
   projectPayoutAddress: string;
   originalMatchAmountInToken: string;
+}
+
+export interface MatchingDistributionWithAnchorAddress extends MatchingDistribution {
+  anchorAddress: string;
 }
 
 export interface ApplicationRoundQueryResponse {

@@ -1,107 +1,80 @@
 import type {
-  Project,
   RewardCalculation,
   CalculatedReward,
   MerkleData,
 } from '@/types';
 import { keccak256, encodePacked, type Hex } from 'viem';
 import { MerkleTree } from 'merkletreejs';
-import { type Stake } from '@/ext/indexer';
+import { type MatchingDistributionWithAnchorAddress, type Stake } from '@/ext/indexer';
 
 export function calculateRewards(
   totalRewardPool: bigint,
   totalMatchAmount: bigint,
   totalDuration: bigint,
-  projects: Project[],
+  matchingDistribution: MatchingDistributionWithAnchorAddress[],
   stakes: Stake[]
 ): RewardCalculation[] {
-  console.log('==> 1. Initial inputs:', {
-    totalRewardPool: totalRewardPool.toString(),
-    totalMatchAmount: totalMatchAmount.toString(),
-    totalDuration: totalDuration.toString(),
-    projectsCount: projects.length,
-    stakesCount: stakes.length
-  });
+  // Get set of projects that have stakes
+  const projectsWithStakes = new Set(stakes.map(s => s.recipient.toLowerCase()));
 
-  const rewards: RewardCalculation[] = [];
+  // Calculate total match amount for ONLY projects with stakes
+  const stakedProjectsMatchAmount = matchingDistribution
+    .filter(p => projectsWithStakes.has(p.anchorAddress.toLowerCase()))
+    .reduce((sum, p) => sum + BigInt(p.matchAmountInToken), BigInt(0));
+
+  // Calculate weights for stakes
   const projectWeights: Record<string, bigint> = {};
   const userWeights: Record<string, bigint> = {};
 
-  // Calculate weights for each stake
+  // Step 1: Calculate stake weights
   for (const stake of stakes) {
-    const timestampSeconds = BigInt(Math.floor(new Date(stake.blockTimestamp).getTime() / 1000));
+    const timestampSeconds = BigInt(stake.blockTimestamp.toString());
     const timeLeft = totalDuration - timestampSeconds;
     const stakeWeight = BigInt(stake.amount) * timeLeft;
 
-    console.log('==> 2. Processing stake:', {
-      sender: stake.sender,
-      recipient: stake.recipient,
-      amount: stake.amount,
-      timestamp: stake.blockTimestamp,
-      timestampSeconds: timestampSeconds.toString(),
-      timeLeft: timeLeft.toString(),
-      stakeWeight: stakeWeight.toString()
-    });
+    const projectId = stake.recipient.toLowerCase();
+    const userId = stake.sender.toLowerCase();
 
-    projectWeights[stake.recipient] =
-      (projectWeights[stake.recipient] ?? BigInt(0)) + stakeWeight;
-    userWeights[`${stake.sender}:${stake.recipient}`] =
-      (userWeights[`${stake.sender}:${stake.recipient}`] ?? BigInt(0)) +
-      stakeWeight;
-    
-    console.log('==> 3. Updated weights:', {
-      projectWeight: projectWeights[stake.recipient].toString(),
-      userWeight: userWeights[`${stake.sender}:${stake.recipient}`].toString()
-    });
+    projectWeights[projectId] = (projectWeights[projectId] ?? BigInt(0)) + stakeWeight;
+    userWeights[`${userId}:${projectId}`] = (userWeights[`${userId}:${projectId}`] ?? BigInt(0)) + stakeWeight;
   }
 
-  console.log('==> 4. Final weights:', {
-    projectWeights: Object.fromEntries(
-      Object.entries(projectWeights).map(([k, v]) => [k, v.toString()])
-    ),
-    userWeights: Object.fromEntries(
-      Object.entries(userWeights).map(([k, v]) => [k, v.toString()])
-    )
-  });
+  // Step 2: Calculate and distribute rewards
+  const userRewards: Record<string, bigint> = {};
+  let totalDistributed = BigInt(0);
 
-  // Calculate rewards for each project and user
-  for (const project of projects) {
-    const projectRewardPool =
-      (project.matchAmount / totalMatchAmount) * totalRewardPool;
+  for (const projectId of Object.keys(projectWeights)) {
+    const project = matchingDistribution.find(p => p.anchorAddress.toLowerCase() === projectId);
+    if (project === null || project === undefined) continue;
 
-    console.log('==> 5. Processing project:', {
-      projectId: project.id,
-      matchAmount: project.matchAmount,
-      projectRewardPool: projectRewardPool.toString()
-    });
-
-    for (const stake of stakes.filter(s => s.recipient === project.id)) {
-      const userWeight = userWeights[`${stake.sender}:${project.id}`];
-      const projectWeight = projectWeights[project.id];
-      const userReward = (userWeight / projectWeight) * projectRewardPool;
-
-      console.log('==> 6. Calculating user reward:', {
-        user: stake.sender,
-        projectId: project.id,
-        userWeight: userWeight.toString(),
-        projectWeight: projectWeight.toString(),
-        userReward: userReward.toString()
-      });
-
-      rewards.push({
-        user: stake.sender,
-        project: project.id,
-        reward: userReward,
-      });
+    const matchAmount = BigInt(project.matchAmountInToken);
+    const projectReward = (matchAmount * totalRewardPool) / stakedProjectsMatchAmount;
+    const totalProjectWeight = projectWeights[projectId];
+    
+    if (totalProjectWeight > 0) {
+      for (const [key, userWeight] of Object.entries(userWeights)) {
+        const [userIdKey, projectIdKey] = key.split(':');
+    
+        if (projectIdKey !== '' && projectIdKey === projectId) {
+          const userReward = (userWeight * projectReward) / totalProjectWeight;
+          userRewards[userIdKey] = (userRewards[userIdKey] ?? BigInt(0)) + userReward;
+          totalDistributed += userReward;
+        }
+      }
     }
   }
 
-  console.log('==> 7. Final rewards:', rewards.map(r => ({
-    ...r,
-    reward: r.reward.toString()
-  })));
+  // Normalize if there's any rounding difference
+  const difference = totalRewardPool - totalDistributed;
+  if (difference !== BigInt(0)) {
+    const firstUser = Object.keys(userRewards)[0];
+    if (firstUser !== '') userRewards[firstUser] += difference;
+  }
 
-  return rewards;
+  return Object.entries(userRewards).map(([user, reward]) => ({
+    user,
+    reward,
+  }));
 }
 
 export const generateMerkleData = (

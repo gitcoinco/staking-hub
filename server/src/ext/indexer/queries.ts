@@ -27,6 +27,8 @@ export const getRoundsWithApplications = gql`
         metadataCid
         status
         projectId
+        totalDonationsCount
+        totalAmountDonatedInUsd
         project: canonicalProject {
           metadata
           metadataCid
@@ -84,6 +86,8 @@ export const getRoundMatchingDistributions = gql`
         id: { equalTo: $roundId }
       }
     ) {
+      matchAmount
+      donationsEndTime
       matchingDistribution
     }
   }

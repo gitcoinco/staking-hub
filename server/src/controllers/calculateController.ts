@@ -2,9 +2,7 @@ import type { Request, Response } from 'express';
 import { IsNullError, NotFoundError, ServerError } from '@/errors';
 import { createLogger } from '@/logger';
 import { catchError, validateRequest } from '@/utils/utils';
-import { Pool } from '@/entity/Pool';
 
-import type { Project } from '@/types';
 import { calculateRewards, generateMerkleData } from '@/utils/calculations';
 import poolService from '@/service/PoolService';
 import { indexerClient } from '@/ext/indexer';
@@ -15,8 +13,6 @@ interface CalculateRequestBody {
   chainId: number;
   alloPoolId: string;
   totalRewardPool: bigint;
-  totalMatchAmount: bigint;
-  totalDuration: bigint;
 }
 
 export const calculate = async (
@@ -30,34 +26,39 @@ export const calculate = async (
       chainId,
       alloPoolId,
       totalRewardPool,
-      totalMatchAmount,
-      totalDuration,
     } = req.body;
 
-    const [errorFetchingMatchingDistribution, matchingDistribution] =
-      await catchError(fetchMatchingDistribution(chainId, alloPoolId));
+    const [errorFetchingMatchingDistribution, roundCalculationInfo] =
+      await catchError(indexerClient.getRoundMatchingDistributions({
+        chainId,
+        roundId: alloPoolId,
+      }));
 
-    if (errorFetchingMatchingDistribution !== undefined) {
-      logger.error(
-        'Error fetching matching distribution:',
-        errorFetchingMatchingDistribution
-      );
-      res
-        .status(404)
-        .json({
-          error: `Matching distribution for pool ${alloPoolId} not found`,
-        });
-      throw new ServerError(
-        `Matching distribution: ${errorFetchingMatchingDistribution?.message} `
-      );
+    if (errorFetchingMatchingDistribution !== undefined || roundCalculationInfo === undefined) {
+      logger.error('Error fetching matching distribution:', errorFetchingMatchingDistribution);
+      res.status(500).json({ error: 'Internal server error' });
+      throw new ServerError(`Error fetching matching distribution: ${errorFetchingMatchingDistribution?.message} `);
     }
 
-    if (matchingDistribution === null || matchingDistribution === undefined) {
-      throw new NotFoundError(
-        `Matching distribution for pool ${alloPoolId} not found`
-      );
-    }
+    const [errorFetchingRoundWithApplications, roundWithApplications] =
+      await catchError(indexerClient.getRoundsWithApplications({
+        chainId,
+        roundIds: [alloPoolId],
+      }));
 
+    if (errorFetchingRoundWithApplications !== undefined || roundWithApplications === undefined || roundWithApplications === null) {
+      logger.error('Error fetching round with applications:', errorFetchingRoundWithApplications);
+      res.status(500).json({ error: 'Internal server error' });
+      throw new ServerError(`Error fetching round with applications: ${errorFetchingRoundWithApplications?.message} `);
+    }
+      
+      
+
+    const totalMatchAmount = roundCalculationInfo.matchAmount;
+    const matchingDistribution = roundCalculationInfo.matchingDistribution.matchingDistribution;
+    // todo: change the date string to the actual end time: matchingDistribution.donationsEndTime
+    const totalDuration = BigInt(new Date("Mar-05-2025 08:39:24 AM UTC").getTime() / 1000);
+    
     const [errorFetchingStakes, stakes] = await catchError(
       indexerClient.getPoolStakes({
         chainId,
@@ -83,87 +84,45 @@ export const calculate = async (
       alloPoolId === undefined ||
       !Array.isArray(matchingDistribution) ||
       !Array.isArray(stakes) ||
-      typeof totalRewardPool !== 'string' ||
-      typeof totalMatchAmount !== 'string' ||
-      typeof totalDuration !== 'string'
+      typeof totalRewardPool !== 'string'
     ) {
       throw new IsNullError('Missing required parameters');
     }
+
+    const matchingDistributionWithAnchorAddress = matchingDistribution.map((distribution) => ({
+      ...distribution,
+      anchorAddress: roundWithApplications[0].applications.find((application) => application.projectId.toLowerCase() === distribution.projectId.toLowerCase())?.anchorAddress ?? '',
+    }));
 
     const calculatedRewards = calculateRewards(
       BigInt(totalRewardPool),
       BigInt(totalMatchAmount),
       BigInt(totalDuration),
-      matchingDistribution,
+      matchingDistributionWithAnchorAddress,
       stakes
     );
 
-    console.log('==> 1 calculatedRewards: ', calculatedRewards);
-
     const { merkleRoot, rewards } = generateMerkleData(calculatedRewards);
     // Save to database using catchError
-    const pool = new Pool();
-    pool.chainId = chainId;
-    pool.alloPoolId = alloPoolId;
+    const pool = await poolService.getPoolByChainIdAndAlloPoolId(chainId, alloPoolId);
+    if (pool === null) {
+      throw new NotFoundError(`Pool ${alloPoolId} not found`);
+    }
+
     pool.rewards = rewards;
     pool.merkleRoot = merkleRoot;
 
-    console.log(JSON.stringify(pool, null, 2));
-
     const [error] = await catchError(poolService.savePool(pool));
 
-    if (error !== null) {
+    if (error !== undefined ) {
       logger.error('Error saving rewards to database:', error);
     }
 
-    res.status(200).json({ success: true, rewards });
+    // Transform rewards to remove proof before sending response
+    const rewardsWithoutProof = rewards.map(({ proof, ...rest }) => rest);
+    res.status(200).json({ success: true, rewards: rewardsWithoutProof });
   } catch (error) {
     logger.error('Error in calculate controller:', error);
     res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-const fetchMatchingDistribution = async (
-  chainId: number,
-  alloPoolId: string
-): Promise<Project[]> => {
-  try {
-    const [errorFetchingMatchingDistribution, pool] = await catchError(
-      indexerClient.getRoundMatchingDistributions({
-        chainId,
-        roundId: alloPoolId,
-      })
-    );
-
-    if (errorFetchingMatchingDistribution !== undefined) {
-      logger.error(
-        'Error fetching matching distribution:',
-        errorFetchingMatchingDistribution
-      );
-      throw new ServerError(
-        `Error fetching matching distribution for pool ${alloPoolId}`
-      );
-    }
-
-    if (
-      pool?.matchingDistribution?.matchingDistribution === undefined ||
-      pool?.matchingDistribution?.matchingDistribution === null
-    ) {
-      throw new NotFoundError(
-        `Matching distribution for pool ${alloPoolId} not found`
-      );
-    }
-
-    const projects = pool.matchingDistribution.matchingDistribution.map(
-      distribution => ({
-        id: distribution.projectId,
-        matchAmount: BigInt(distribution.matchAmountInToken),
-      })
-    );
-
-    return projects;
-  } catch (error) {
-    logger.error('Error in fetchMatchingDistribution:', error);
-    throw error;
   }
 };
