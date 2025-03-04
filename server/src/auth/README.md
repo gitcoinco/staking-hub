@@ -20,7 +20,7 @@ FRONTEND_URL=http://localhost:3000
 NODE_ENV=development
 ```
 
-> **Note**: Setting `NODE_ENV=development` bypasses authentication checks during development.
+> **Note**: Setting `NODE_ENV=development` bypasses all authentication checks during development. This includes `requireAuth`, `requireAuthMatchAddress`, and `checkAuthMatchAddress` functions.
 
 ### CORS Setup
 
@@ -61,7 +61,11 @@ Verifies the signed SIWE message.
 
 **Response Codes**:
 - `200`: Verification successful (`true`)
+- `400`: Address not found in request
+- `401`: Not authenticated
+- `403`: Unauthorized - Address mismatch
 - `422`: Invalid signature or message
+- `429`: Rate limit exceeded
 - `440`: Message expired
 - `500`: Server error
 
