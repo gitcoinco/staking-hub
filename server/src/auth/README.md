@@ -12,7 +12,10 @@ npm install express-session siwe @types/express-session
 ```
 SESSION_SECRET=your-super-secret-key-change-this-in-production
 FRONTEND_URL=http://localhost:3000
+NODE_ENV=development
 ```
+
+If you are running in development mode, you can set the `NODE_ENV` to `development` to bypass the authentication check.
 
 ## Setup CORS
 
