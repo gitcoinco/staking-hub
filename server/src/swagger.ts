@@ -15,7 +15,7 @@ const options: SwaggerOptions = {
       },
     ],
   },
-  apis: ['src/routes/*.ts'],
+  apis: ['src/routes/*.ts', 'src/auth/siwe.ts'],
 };
 
 export default options;
