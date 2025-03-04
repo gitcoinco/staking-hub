@@ -100,6 +100,22 @@ app.post('/api/update-profile',
 });
 ```
 
+### Address Matching in Route Handlers
+For direct address matching within route handlers, use `checkAuthMatchAddress`:
+
+```typescript
+import { checkAuthMatchAddress } from './auth/siwe';
+
+app.post('/api/users/:address/update', async (req, res) => {
+    if (!checkAuthMatchAddress(req, res, req.params.address)) {
+        return; // Auth check failed and error 403 was sent
+    }
+    
+    // Continue with handler logic
+    // Only executes if authenticated address matches :address
+});
+```
+
 ## Frontend Implementation
 
 Complete authentication flow example:

@@ -238,4 +238,35 @@ export const requireAuthMatchAddress = (addressLocation: AddressLocation) => {
     };
 };
 
+/**
+ * Checks if the authenticated user matches the target address
+ * @param req Express request
+ * @param res Express response
+ * @param address Address to check against
+ * @returns boolean indicating if check passed (true) or failed and error was sent (false)
+ */
+export const checkAuthMatchAddress = (
+  req: Request,
+  res: Response,
+  address: string
+): boolean => {
+    if(process.env.NODE_ENV === 'development') {
+        return true;
+    }
+
+  if (req.session.siwe?.address === undefined || req.session.siwe.address === null) {
+    res.status(401).json({ message: 'You have to first sign in' });
+    return false;
+  }
+
+  const siweAddress = req.session.siwe.address.toLowerCase();
+  
+  if (address.toLowerCase() !== siweAddress) {
+    res.status(403).json({ message: 'Unauthorized: Address mismatch' });
+    return false;
+  }
+
+  return true;
+};
+
 export default router;
