@@ -102,8 +102,6 @@ export const calculate = async (
       stakes
     );
 
-    console.log('==> 1 calculatedRewards: ', calculatedRewards);
-
     const { merkleRoot, rewards } = generateMerkleData(calculatedRewards);
     // Save to database using catchError
     const pool = await poolService.getPoolByChainIdAndAlloPoolId(chainId, alloPoolId);
@@ -114,16 +112,15 @@ export const calculate = async (
     pool.rewards = rewards;
     pool.merkleRoot = merkleRoot;
 
-    console.log(JSON.stringify(pool, null, 2));
-
     const [error] = await catchError(poolService.savePool(pool));
 
     if (error !== undefined ) {
       logger.error('Error saving rewards to database:', error);
-      console.log(JSON.stringify(error, null, 2));
     }
 
-    res.status(200).json({ success: true, rewards });
+    // Transform rewards to remove proof before sending response
+    const rewardsWithoutProof = rewards.map(({ proof, ...rest }) => rest);
+    res.status(200).json({ success: true, rewards: rewardsWithoutProof });
   } catch (error) {
     logger.error('Error in calculate controller:', error);
     res.status(500).json({ error: 'Internal server error' });

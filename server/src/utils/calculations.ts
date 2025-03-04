@@ -17,28 +17,10 @@ export function calculateRewards(
   // Get set of projects that have stakes
   const projectsWithStakes = new Set(stakes.map(s => s.recipient.toLowerCase()));
 
-  // log sum of stakes by user
-  const stakesByUser = stakes.reduce<Record<string, bigint>>((acc, stake) => {
-    const userId = stake.sender.toLowerCase();
-    const amount = BigInt(stake.amount);
-    acc[userId] = (acc[userId] ?? BigInt(0)) + amount;
-    return acc;
-  }, {});
-
-  console.log('==> Stakes by user:', stakesByUser);
-  
-
   // Calculate total match amount for ONLY projects with stakes
   const stakedProjectsMatchAmount = matchingDistribution
     .filter(p => projectsWithStakes.has(p.anchorAddress.toLowerCase()))
     .reduce((sum, p) => sum + BigInt(p.matchAmountInToken), BigInt(0));
-
-  console.log('==> Initial values:', {
-    totalRewardPool: totalRewardPool.toString(),
-    totalMatchAmount: totalMatchAmount.toString(),
-    stakedProjectsMatchAmount: stakedProjectsMatchAmount.toString(),
-    numProjectsWithStakes: projectsWithStakes.size
-  });
 
   // Calculate weights for stakes
   const projectWeights: Record<string, bigint> = {};
@@ -55,14 +37,6 @@ export function calculateRewards(
 
     projectWeights[projectId] = (projectWeights[projectId] ?? BigInt(0)) + stakeWeight;
     userWeights[`${userId}:${projectId}`] = (userWeights[`${userId}:${projectId}`] ?? BigInt(0)) + stakeWeight;
-
-    console.log('==> Stake weight calculation:', {
-      userId,
-      projectId,
-      amount: stake.amount.toString(),
-      timeLeft: timeLeft.toString(),
-      stakeWeight: stakeWeight.toString()
-    });
   }
 
   // Step 2: Calculate and distribute rewards
@@ -81,31 +55,14 @@ export function calculateRewards(
       for (const [key, userWeight] of Object.entries(userWeights)) {
         const [userIdKey, projectIdKey] = key.split(':');
     
-        if (projectIdKey !== '' && projectIdKey === projectId) {  // Add explicit empty string check
+        if (projectIdKey !== '' && projectIdKey === projectId) {
           const userReward = (userWeight * projectReward) / totalProjectWeight;
           userRewards[userIdKey] = (userRewards[userIdKey] ?? BigInt(0)) + userReward;
           totalDistributed += userReward;
-    
-          console.log('==> Reward calculation:', {
-            userId: userIdKey,
-            projectId,
-            matchAmount: matchAmount.toString(),
-            projectReward: projectReward.toString(),
-            userWeight: userWeight.toString(),
-            totalProjectWeight: totalProjectWeight.toString(),
-            userReward: userReward.toString()
-          });
         }
       }
     }
-    
   }
-
-  console.log('==> Final distribution:', {
-    totalRewardPool: totalRewardPool.toString(),
-    totalDistributed: totalDistributed.toString(),
-    difference: (totalRewardPool - totalDistributed).toString()
-  });
 
   // Normalize if there's any rounding difference
   const difference = totalRewardPool - totalDistributed;
