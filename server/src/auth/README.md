@@ -38,7 +38,7 @@ app.use(cors({
 ```javascript
 import { configureSiweAuth } from '@/auth/siwe';
 
-configureSiweAuth(app);
+configureSiweAuth();
 ```
 
 ## API Endpoints
@@ -138,12 +138,3 @@ async function signInWithEthereum() {
     return verifyRes.ok;
 }
 ```
-
-## Security Considerations
-
-1. Always use HTTPS in production
-2. Change the `SESSION_SECRET` to a strong, unique value
-3. Implement rate limiting for `/auth/nonce` and `/auth/verify` endpoints
-4. Consider implementing session expiration
-5. Validate chain ID to prevent cross-chain replay attacks
-
