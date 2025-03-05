@@ -1,4 +1,4 @@
-import { PoolIdChainId, RewardWithoutProof, RoundWithStakes, Stake } from "@/types";
+import { RewardWithoutProof, RoundWithStakes, Stake } from "@/types";
 
 const GET = async (url: string) => {
   const response = await fetch(url, {
@@ -16,25 +16,11 @@ const GET = async (url: string) => {
   return response.json();
 }
 
-
 // Pool Routes
-export async function getPoolRewardByAlloPoolIdAndChainIdAndRecipientId(alloPoolId: string, chainId: number, recipientId?: string): Promise<RewardWithoutProof> {
-  try {
-    let url = `${import.meta.env.VITE_STAKING_HUB_ENDPOINT}/api/pools/${chainId}/${alloPoolId}/rewards`;
-    if (recipientId) {
-      url += `?recipient=${recipientId}`;
-    }
-    const response: RewardWithoutProof[] = await GET(url);
-    return response[0];
-  } catch (error) {
-    console.error("Error fetching pool reward for recipient:", error);
-    throw error;
-  }
-}
 
-export async function getPoolInfoAndStakesByAlloPoolIdAndChainId(poolInfoAndStakesBody: PoolIdChainId): Promise<RoundWithStakes> {
+export async function getPoolSummary(alloPoolId: string, chainId: number): Promise<RoundWithStakes> {
   try {
-    const url = `${import.meta.env.VITE_STAKING_HUB_ENDPOINT}/api/pools/${poolInfoAndStakesBody.chainId}/${poolInfoAndStakesBody.alloPoolId}/stakes`;
+    let url = `${import.meta.env.VITE_STAKING_HUB_ENDPOINT}/api/pools/${chainId}/${alloPoolId}/summary`;
     const response: RoundWithStakes = await GET(url);
     return response;
   } catch (error) {

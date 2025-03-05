@@ -1,5 +1,4 @@
-export * from './useGetPoolRewards';
-export * from './useGetPoolInfoAndStakes';
+export * from './useGetPoolSummary';
 export * from './useGetStakesForRecipient';
 export * from './useGetRewardsForRecipient';
 
@@ -12,16 +11,10 @@ export * from './useGetRewardsForRecipient';
 // Grants Staking Tab (new endpoint  B)
 // - all rounds with total stakes per round
 
-// Round Details Page
-// - round info         useGetPoolInfoAndStakes
-// - application info   useGetPoolInfoAndStakes
-// - stakes             useGetPoolInfoAndStakes (to get total stakes per application you can use the totalStakesByAnchorAddress)
-// - existing stakes made by recipient rewards use stakes
-
 // Round Details Page + highlighted application 
-// - round info         useGetPoolInfoAndStakes
-// - application info   useGetPoolInfoAndStakes
-// - stakes             useGetPoolInfoAndStakes (to get total stakes per application you can use the totalStakesByAnchorAddress)
+// - round info         useGetPoolSummary
+// - application info   useGetPoolSummary
+// - stakes             useGetPoolSummary (to get total stakes per application you can use the totalStakesByAnchorAddress)
 // - existing stakes made by recipient rewards use stakes
 
 // Claim Page (new endpoint C)

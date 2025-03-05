@@ -65,6 +65,25 @@ class IndexerClient {
     return IndexerClient.instance;
   }
 
+  async getRoundWithApplications({
+    chainId,
+    roundId,
+  }: {
+    chainId: number;
+    roundId: string;
+  }): Promise<RoundWithApplications | null> {
+    const response = await this.getRoundsWithApplications({
+      chainId,
+      roundIds: [roundId],
+    });
+
+    if (response === null) {
+      throw new NotFoundError(`No round found for roundId: ${roundId} on chainId: ${chainId}`);
+    }
+
+    return response[0];
+  }
+
   async getRoundsWithApplications({
     chainId,
     roundIds,
