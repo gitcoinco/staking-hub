@@ -7,6 +7,9 @@
 // - add returnToMatchingPool parameter to claimTokens
 // - update claim event to send funds to matching pool if returnToMatchingPool is true
 // - add clawback function
+// - add chainId and poolId immutable variables
+// - update constructor to accept chainId and poolId
+// - update claim event to include chainId and poolId
 pragma solidity ^0.8.2;
 
 import "./MerkleProof.sol";
@@ -24,9 +27,11 @@ contract MerkleAirdrop is Ownable {
     address public immutable sender;
     IERC20 public immutable token;
     bytes32 public immutable merkleRoot;
+    uint256 public immutable chainId;
+    uint256 public immutable poolId;
     BitMaps.BitMap private claimed;
 
-    event Claim(address indexed claimant, uint256 amount);
+    event Claim(address indexed claimant, uint256 amount, uint256 chainId, uint256 poolId);
     event Clawback(address indexed clawbackAddress, uint256 amount, address token);
 
     /**
@@ -35,12 +40,23 @@ contract MerkleAirdrop is Ownable {
      * @param _sender The account to send airdrop tokens from.
      * @param _token The token contract to send tokens with.
      * @param _merkleRoot The merkle root of the airdrop.
+     * @param _chainId The chain ID for the airdrop.
+     * @param _poolId The pool ID for the airdrop.
      */
-    constructor(address _matchingPool, address _sender, IERC20 _token, bytes32 _merkleRoot) Ownable(msg.sender) {
+    constructor(
+        address _matchingPool,
+        address _sender,
+        IERC20 _token,
+        bytes32 _merkleRoot,
+        uint256 _chainId,
+        uint256 _poolId
+    ) Ownable(msg.sender) {
         matchingPool = _matchingPool;
         sender = _sender;
         token = _token;
         merkleRoot = _merkleRoot;
+        chainId = _chainId;
+        poolId = _poolId;
     }
 
     /**
@@ -59,7 +75,7 @@ contract MerkleAirdrop is Ownable {
         require(!isClaimed(index), "MerkleAirdrop: Tokens already claimed.");
 
         claimed.set(index);
-        emit Claim(recipient, amount);
+        emit Claim(recipient, amount, chainId, poolId);
 
         if (returnToMatchingPool) {
             token.transferFrom(sender, matchingPool, amount);
