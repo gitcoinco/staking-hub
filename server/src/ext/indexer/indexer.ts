@@ -8,6 +8,9 @@ import type {
   PoolStakesQueryResponse,
   Stake,
   RoundMatchingDistributions,
+  PoolOverview,
+  RoundWithApplicationsStatusQueryResponse,
+  UnStake,
 } from './types';
 import request from 'graphql-request';
 import {
@@ -15,7 +18,8 @@ import {
   getRoundMatchingDistributions,
   getRounds,
   getPoolStakes,
-  getPoolStakesForRecipient,
+  getPoolStakesByStaker,
+  getRoundsWithApplicationsStatus,
 } from './queries';
 import type { Logger } from 'winston';
 import { IsNullError, NotFoundError } from '@/errors';
@@ -65,6 +69,25 @@ class IndexerClient {
     return IndexerClient.instance;
   }
 
+  async getRoundWithApplications({
+    chainId,
+    roundId,
+  }: {
+    chainId: number;
+    roundId: string;
+  }): Promise<RoundWithApplications | null> {
+    const response = await this.getRoundsWithApplications({
+      chainId,
+      roundIds: [roundId],
+    });
+
+    if (response === null) {
+      throw new NotFoundError(`No round found for roundId: ${roundId} on chainId: ${chainId}`);
+    }
+
+    return response[0];
+  }
+
   async getRoundsWithApplications({
     chainId,
     roundIds,
@@ -106,6 +129,53 @@ class IndexerClient {
         `Failed to fetch round with applications: ${error.message}`,
         { error }
       );
+      throw error;
+    }
+  }
+
+  async getRoundsWithApplicationsCountAndStakedAmount({
+    chainId,
+    roundIds,
+  }: {
+    chainId: number;
+    roundIds: string[];
+  }): Promise<PoolOverview[]> {
+    const requestVariables = { chainId, roundIds };
+    try {
+      const response: RoundWithApplicationsStatusQueryResponse = await request(
+        this.indexerEndpoint,
+        getRoundsWithApplicationsStatus,
+        requestVariables
+      );
+
+      const rounds = response.rounds;
+
+      const poolOverview: PoolOverview[] = [];
+
+      for (const round of rounds) {
+        const stakes = await this.getPoolStakes({
+          chainId,
+          poolId: Number(round.id),
+        });
+
+        const totalStaked = stakes.reduce((acc, stake) => acc + Number(stake.amount), 0);
+
+        poolOverview.push({
+          chainId,
+          id: round.id,
+          roundMetadata: round.roundMetadata,
+          roundMetadataCid: round.roundMetadataCid,
+          donationsStartTime: round.donationsStartTime,
+          donationsEndTime: round.donationsEndTime,
+          totalStaked,
+          approvedProjectCount: round.applications.filter((application) => application.status === "APPROVED").length,
+        });
+
+      }
+
+      return poolOverview;
+    } catch (error) {
+      this.logger.error(`Failed to fetch round with applications count: ${error.message}`, { error });
       throw error;
     }
   }
@@ -188,20 +258,22 @@ class IndexerClient {
     }
   }
 
-  async getPoolStakesForRecipient({
-    recipientId
+  async getPoolStakesByStaker({
+    staker
   }: {
-    recipientId: string;
-  }): Promise<Stake[]> {
-    const requestVariables = { recipientId };
+    staker: string;
+  }): Promise<{ staked: Stake[], unstaked: UnStake[] }> {
+    const requestVariables = { staker };
     try {
       const response: PoolStakesQueryResponse = await request(
         this.stakingIndexerEndpoint,
-        getPoolStakesForRecipient,
+        getPoolStakesByStaker,
         requestVariables
       );
-
-      return response.TokenLock_Locked;
+      return {
+        staked: response.TokenLock_Locked,
+        unstaked: response.TokenLock_Claimed,
+      };
     } catch (error) {
       this.logger.error(`Failed to fetch pool stakes: ${error.message}`, { error });
       throw error;

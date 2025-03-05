@@ -101,7 +101,7 @@ export const generateMerkleData = (
     const proof = merkleTree.getHexProof(leaf);
 
     return {
-      recipientId: reward.user,
+      staker: reward.user,
       amount: reward.reward.toString(),
       proof,
     };
