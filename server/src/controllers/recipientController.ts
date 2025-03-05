@@ -72,32 +72,3 @@ export const getRewardsForRecipient = async (req: Request, res: Response): Promi
 
   res.status(200).json(rewards);
 };
-
-/**
- * Get all stakes for a recipient for all finalized pools or a specific pool
- * 
- * @param req - Express request object
- * @param res - Express response object
- */
-export const getStakesForRecipient = async (req: Request, res: Response): Promise<void> => {
-  validateRequest(req, res);
-  
-  const { recipientId } = req.params;
-  const { chainId, alloPoolId } = req.query;
-
-  let [error, stakes] = await catchError(indexerClient.getPoolStakesForRecipient({
-    recipientId,
-  }));
-
-  if (error !== undefined || stakes === undefined) {
-    res.status(500).json({ error: 'Internal server error' });
-    throw new ServerError(`Error fetching stakes for recipient ${recipientId}`);
-  }
-
-  // filter stakes for a specific pool if chainId and alloPoolId are provided
-  if (chainId !== undefined && alloPoolId !== undefined) {
-    stakes = stakes.filter((stake) => stake.poolId === alloPoolId && stake.chainId.toString() === chainId);
-  }
-
-  res.status(200).json(stakes);
-};
