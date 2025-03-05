@@ -12,12 +12,7 @@ contract MeasureTokenLockGas is Script {
 
     function setUp() public {
         token = new MockERC20();
-        tokenLock = new TokenLock(
-            token,
-            block.timestamp,
-            block.timestamp + 7 days,
-            block.timestamp + 7 days
-        );
+        tokenLock = new TokenLock(token, block.timestamp, block.timestamp + 7 days, block.timestamp + 7 days);
     }
 
     function run() external {
@@ -58,7 +53,7 @@ contract MeasureTokenLockGas is Script {
         uint256 gasUsed = gasleft();
         tokenLock.lock(amounts, chainIds, poolIds, recipients);
         gasUsed = gasUsed - gasleft();
-        
+
         console.log("Gas used for %s recipients: %s", count, gasUsed);
     }
-} 
+}
