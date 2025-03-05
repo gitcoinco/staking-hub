@@ -92,7 +92,7 @@ export const getPoolSummary = async (req: Request, res: Response): Promise<void>
     })
   );
   
-  if (errorFetching !== undefined || indexerPoolData === undefined || indexerPoolData === null || indexerPoolData.length === 0) {
+  if (errorFetching !== undefined || indexerPoolData === undefined || indexerPoolData === null) {
     logger.error('Error fetching indexer pool data:', errorFetching);
     res.status(500).json({ error: 'Internal server error' });
     return;
@@ -142,7 +142,7 @@ export const getAllPoolsOverview = async (req: Request, res: Response): Promise<
     throw new ServerError(`Error fetching pools`);
   }
 
-  const poolsOverview: Partial<PoolOverview>[] = [];
+  const poolsOverview: PoolOverview[] = [];
 
   // Group pools by chainId to efficiently fetch metadata from grants-stack indexer
   const poolsByChainId = pools.reduce<Record<number, Pool[]>>((acc, pool) => {

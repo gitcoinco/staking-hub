@@ -197,6 +197,10 @@ router.get('/:chainId/:alloPoolId/summary', getPoolSummary);
  *                     type: object
  *                   roundMetadataCid:
  *                     type: string
+ *                   donationsStartTime:
+ *                     type: string
+ *                   donationsEndTime:
+ *                     type: string
  */
 router.get('/overview', getAllPoolsOverview);
 

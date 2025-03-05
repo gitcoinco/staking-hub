@@ -10,6 +10,7 @@ import type {
   RoundMatchingDistributions,
   PoolOverview,
   RoundWithApplicationsStatusQueryResponse,
+  UnStake,
 } from './types';
 import request from 'graphql-request';
 import {
@@ -17,7 +18,7 @@ import {
   getRoundMatchingDistributions,
   getRounds,
   getPoolStakes,
-  getPoolStakesForRecipient,
+  getPoolStakesByStaker,
   getRoundsWithApplicationsStatus,
 } from './queries';
 import type { Logger } from 'winston';
@@ -164,6 +165,8 @@ class IndexerClient {
           id: round.id,
           roundMetadata: round.roundMetadata,
           roundMetadataCid: round.roundMetadataCid,
+          donationsStartTime: round.donationsStartTime,
+          donationsEndTime: round.donationsEndTime,
           totalStaked,
           approvedProjectCount: round.applications.filter((application) => application.status === "APPROVED").length,
         });
@@ -255,20 +258,22 @@ class IndexerClient {
     }
   }
 
-  async getPoolStakesForRecipient({
-    recipientId
+  async getPoolStakesByStaker({
+    staker
   }: {
-    recipientId: string;
-  }): Promise<Stake[]> {
-    const requestVariables = { recipientId };
+    staker: string;
+  }): Promise<{ staked: Stake[], unstaked: UnStake[] }> {
+    const requestVariables = { staker };
     try {
       const response: PoolStakesQueryResponse = await request(
         this.stakingIndexerEndpoint,
-        getPoolStakesForRecipient,
+        getPoolStakesByStaker,
         requestVariables
       );
-
-      return response.TokenLock_Locked;
+      return {
+        staked: response.TokenLock_Locked,
+        unstaked: response.TokenLock_Claimed,
+      };
     } catch (error) {
       this.logger.error(`Failed to fetch pool stakes: ${error.message}`, { error });
       throw error;

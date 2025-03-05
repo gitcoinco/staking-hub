@@ -1,4 +1,4 @@
-import { PoolOverview, RewardWithoutProof, RoundWithStakes, Stake } from "@/types";
+import { PoolOverview, RewardWithoutProof, RoundWithStakes, StakerOverview } from "@/types";
 
 const GET = async (url: string) => {
   const response = await fetch(url, {
@@ -41,10 +41,11 @@ export async function getAllPoolsOverview(): Promise<PoolOverview[]> {
 }
 
 // Recipient Routes
-export async function getStakesForRecipient(recipientId: string): Promise<Stake[]> {
+
+export async function getStakerOverview(stakerId: string): Promise<StakerOverview> {
   try {
-    const url = `${import.meta.env.VITE_STAKING_HUB_ENDPOINT}/api/recipients/${recipientId}/stakes`;
-    const response: Stake[] = await GET(url);
+    const url = `${import.meta.env.VITE_STAKING_HUB_ENDPOINT}/api/stakers/${stakerId}/overview`;
+    const response: StakerOverview = await GET(url);
     return response;
   } catch (error) {
     console.error("Error fetching stakes for recipient:", error);
@@ -52,17 +53,17 @@ export async function getStakesForRecipient(recipientId: string): Promise<Stake[
   }
 }
 
-type GetRewardsForRecipientBody = {
-  recipientId: string;
+type GetRewardsForStakerBody = {
+  staker: string;
   signature: string;
   chainId?: number;
   alloPoolId?: string;
 }
 
-export async function getRewardsForRecipient(getRewardsForRecipientBody: GetRewardsForRecipientBody): Promise<RewardWithoutProof[]> {
+export async function getRewardsForStaker(getRewardsForStakerBody: GetRewardsForStakerBody): Promise<RewardWithoutProof[]> {
 
-  const { recipientId, ...rewardsForRecipientBody } = getRewardsForRecipientBody;
-  const url = `${import.meta.env.VITE_STAKING_HUB_ENDPOINT}/api/recipients/${recipientId}/rewards`;
+  const { staker, ...rewardsForStakerBody } = getRewardsForStakerBody;
+  const url = `${import.meta.env.VITE_STAKING_HUB_ENDPOINT}/api/stakers/${staker}/rewards`;
 
   try {
     const response = await fetch(url, {
@@ -70,7 +71,7 @@ export async function getRewardsForRecipient(getRewardsForRecipientBody: GetRewa
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(rewardsForRecipientBody),
+      body: JSON.stringify(rewardsForStakerBody),
     });
 
     if (!response.ok) {

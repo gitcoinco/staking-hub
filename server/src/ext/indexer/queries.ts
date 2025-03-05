@@ -7,6 +7,8 @@ export const getRounds = gql`
       chainId
       roundMetadata
       roundMetadataCid
+      donationsStartTime
+      donationsEndTime
     }
   }
 `;
@@ -20,6 +22,8 @@ export const getRoundsWithApplications = gql`
       id
       roundMetadata
       roundMetadataCid
+      donationsStartTime
+      donationsEndTime
       applications {
         id
         anchorAddress
@@ -45,6 +49,8 @@ export const getRoundsWithApplicationsStatus = gql`
       id
       roundMetadata
       roundMetadataCid
+      donationsStartTime
+      donationsEndTime
       applications {
         status
       }
@@ -61,6 +67,8 @@ export const getRoundWithApplications = gql`
       id
       roundMetadata
       roundMetadataCid
+      donationsStartTime
+      donationsEndTime
       applications {
         id
         metadata
@@ -123,10 +131,10 @@ export const getPoolStakes = gql`
   }
 `;
 
-export const getPoolStakesForRecipient = gql`
-  query PoolStakesForRecipient($recipientId: String!) {
+export const getPoolStakesByStaker = gql`
+  query PoolStakesByStaker($staker: String!) {
     TokenLock_Locked(
-      where: { recipient: { _eq: $recipientId } }
+      where: { sender: { _eq: $staker } }
       order_by: {amount: desc}
     ) {
       chainId
@@ -135,6 +143,13 @@ export const getPoolStakesForRecipient = gql`
       recipient
       sender
       blockTimestamp
+    }
+
+    TokenLock_Claimed(
+      where: { owner: { _eq: $staker } }
+    ) {
+      owner
+      amount
     }
   }
 `;

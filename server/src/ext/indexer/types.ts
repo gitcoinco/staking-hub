@@ -78,6 +78,8 @@ export interface Round {
   id: string;
   roundMetadata: RoundMetadata;
   roundMetadataCid: string;
+  donationsStartTime: string;
+  donationsEndTime: string;
 }
 
 export interface RoundWithApplications extends Round {
@@ -159,6 +161,12 @@ export interface Stake {
 
 export interface PoolStakesQueryResponse {
   TokenLock_Locked: Stake[];
+  TokenLock_Claimed: UnStake[];
+}
+
+export interface UnStake {
+  owner: string;
+  amount: string;
 }
 
 export interface RoundWithStakes extends RoundWithApplications {
@@ -167,11 +175,17 @@ export interface RoundWithStakes extends RoundWithApplications {
 }
 
 export interface RewardWithoutProof {
-  recipientId: string;
+  staker: string;
   amount: string;
 }
 
 export interface PoolOverview extends Round {
   totalStaked: number;
   approvedProjectCount: number;
+}
+export interface StakerOverview {
+  currentlyStaked: number;
+  poolsOverview: PoolOverview[];
+  stakes: Stake[];
+  rewards: RewardWithoutProof[];
 }
