@@ -65,13 +65,11 @@ GET Endpoint
 - `router.get('/pools/:chainId/:poolId/rewards?recipientId', getPoolRewards);`
    - get the rewards for all recipient for a given finalised pool
    - get the reward for a recipient for a given finalised pool
-   - kurt -> what is this for ?
 
 - `router.get('/pools/stakes?chainId&alloPoolId', getPoolStakes);`
    - returns all stakes in descending order of stake amount for all pools with pool metadata
    - returns all stakes in descending order of stake amount for a given pool with pool metadata
    - figma: `gtc staker/staking`,
-   - kurt -> who fetches application metadata ?
 
 
 - `router.get('/recipient/:recipientId/stakes?chainId&alloPoolId', getStakesForRecipient);`
