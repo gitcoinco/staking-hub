@@ -209,19 +209,10 @@ router.get('/:chainId/:poolId/rewards', getPoolRewards);
  *                     type: string
  *                   roundMetadata:
  *                     type: object
- *                     properties:
- *                       name:
- *                         type: string
- *                       roundType:
- *                         type: string
- *                       eligibility:
- *                         type: object
- *                       programContractAddress:
- *                         type: string
- *                       support:
- *                         type: object
- *                   roundMetadataCid:
- *                     type: string
+ *                   applications:
+ *                     type: array
+ *                     items:
+ *                       type: object
  *       400:
  *         description: Invalid chainId or alloPoolId format
  *       500:

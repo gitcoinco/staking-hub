@@ -151,7 +151,7 @@ export interface PoolStakesQueryResponse {
   TokenLock_Locked: Stake[];
 }
 
-export interface RoundWithStakes extends Round {
+export interface RoundWithStakes extends RoundWithApplications {
   stakes: Stake[];
   totalStakesByAnchorAddress: Record<string, string>;
 }
