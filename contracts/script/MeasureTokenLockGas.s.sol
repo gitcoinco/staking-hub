@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// forge script script/MeasureTokenLockGas.s.sol --rpc-url https://mainnet.infura.io/v3/<api-key> -vvv
 pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
