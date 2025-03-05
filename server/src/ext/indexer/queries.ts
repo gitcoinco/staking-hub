@@ -131,8 +131,8 @@ export const getPoolStakes = gql`
   }
 `;
 
-export const getPoolStakesByStaker = gql`
-  query PoolStakesByStaker($staker: String!) {
+export const getPoolStakesAndClaimsByStaker = gql`
+  query PoolStakesAndClaimsByStaker($staker: String!) {
     TokenLock_Locked(
       where: { sender: { _eq: $staker } }
       order_by: {amount: desc}
@@ -150,6 +150,15 @@ export const getPoolStakesByStaker = gql`
     ) {
       owner
       amount
+    }
+
+    MerkleAirdrop_Claim(
+      where: { claimant: { _eq: $staker } }
+    ) {
+      chainId
+      poolId
+      amount
+      claimant
     }
   }
 `;

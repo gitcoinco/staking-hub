@@ -161,7 +161,12 @@ export interface Stake {
 
 export interface PoolStakesQueryResponse {
   TokenLock_Locked: Stake[];
+}
+
+export interface PoolStakesAndClaimsQueryResponse {
+  TokenLock_Locked: Stake[];
   TokenLock_Claimed: UnStake[];
+  MerkleAirdrop_Claim: Claim[];
 }
 
 export interface UnStake {
@@ -188,4 +193,12 @@ export interface StakerOverview {
   poolsOverview: PoolOverview[];
   stakes: Stake[];
   rewards: RewardWithoutProof[];
+  claims: Claim[];
+}
+
+export interface Claim {
+  chainId: number;
+  poolId: string;
+  amount: string;
+  claimant: string;
 }

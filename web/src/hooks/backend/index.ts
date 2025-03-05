@@ -19,5 +19,5 @@ export * from './useGetStakerOverview';
 // - existing stakes made by recipient rewards ( use stakes )
 
 // Claim Page ------> useGetStakerOverview
-// - all claimed + unclaimed + pending rewards per round with round metadata and how much user has staked
+// - all claimed + unclaimed + pending rewards per round with round metadata and how much user has staked -> rely on claims object
 // - get proof when user clicks on claim  -----> useGetRewardsForRecipient

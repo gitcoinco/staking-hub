@@ -5,12 +5,14 @@ import type {
   RoundMatchingDistributionsQueryResponse,
   Round,
   GetRoundsQueryResponse,
-  PoolStakesQueryResponse,
+  PoolStakesAndClaimsQueryResponse,
   Stake,
   RoundMatchingDistributions,
   PoolOverview,
   RoundWithApplicationsStatusQueryResponse,
   UnStake,
+  Claim,
+  PoolStakesQueryResponse,
 } from './types';
 import request from 'graphql-request';
 import {
@@ -18,8 +20,8 @@ import {
   getRoundMatchingDistributions,
   getRounds,
   getPoolStakes,
-  getPoolStakesByStaker,
   getRoundsWithApplicationsStatus,
+  getPoolStakesAndClaimsByStaker,
 } from './queries';
 import type { Logger } from 'winston';
 import { IsNullError, NotFoundError } from '@/errors';
@@ -258,21 +260,23 @@ class IndexerClient {
     }
   }
 
-  async getPoolStakesByStaker({
+  async getPoolStakesAndClaimsByStaker({
     staker
   }: {
     staker: string;
-  }): Promise<{ staked: Stake[], unstaked: UnStake[] }> {
+  }): Promise<{ staked: Stake[], unstaked: UnStake[], claims: Claim[] }> {
     const requestVariables = { staker };
     try {
-      const response: PoolStakesQueryResponse = await request(
+      const response: PoolStakesAndClaimsQueryResponse = await request(
         this.stakingIndexerEndpoint,
-        getPoolStakesByStaker,
+        getPoolStakesAndClaimsByStaker,
         requestVariables
       );
+
       return {
         staked: response.TokenLock_Locked,
         unstaked: response.TokenLock_Claimed,
+        claims: response.MerkleAirdrop_Claim,
       };
     } catch (error) {
       this.logger.error(`Failed to fetch pool stakes: ${error.message}`, { error });
