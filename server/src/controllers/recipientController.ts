@@ -10,9 +10,7 @@ import { indexerClient } from '@/ext/indexer/indexer';
 
 const logger = createLogger();
 
-interface RewardsForRecipientBody extends PoolIdChainId, Signature {
-  recipientId: string;
-}
+interface RewardsForRecipientBody extends PoolIdChainId, Signature { }
 
 /**
  * Check if the caller is the recipient
@@ -49,8 +47,10 @@ const isCallerTheRecipient = async <T>(
 export const getRewardsForRecipient = async (req: Request, res: Response): Promise<void> => {
 
   validateRequest(req, res);
+
+  const { recipientId } = req.params;
   
-  const { chainId, alloPoolId, recipientId, signature } = req.body as RewardsForRecipientBody;
+  const { chainId, alloPoolId, signature } = req.body as RewardsForRecipientBody;
 
   const [errorRecipient, isRecipient] = await catchError(
     isCallerTheRecipient({recipient: recipientId}, signature, recipientId)

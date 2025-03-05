@@ -5,15 +5,10 @@ import { createLogger } from '@/logger';
 
 import { IsNullError, NotFoundError, ServerError } from '@/errors';
 import { type PoolIdChainId } from './types';
-import { indexerClient, type Round, type Stake } from '@/ext/indexer';
+import { indexerClient, RoundWithStakes } from '@/ext/indexer';
 import { type Pool } from '@/entity/Pool';
 
 const logger = createLogger();
-
-type RoundWithStakes = Round & {
-  stakes: Stake[];
-  totalStakesByAnchorAddress: Record<string, string>;
-}
 
 /**
  * Creates a new pool by fetching data from the indexer

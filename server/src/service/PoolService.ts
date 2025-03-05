@@ -1,11 +1,7 @@
 import { type Reward, type Pool } from '@/entity/Pool';
 import { AlreadyExistsError } from '@/errors';
+import { RewardWithoutProof } from '@/ext/indexer';
 import { poolRepository } from '@/repository';
-
-interface RewardWithoutProof {
-  recipientId: string;
-  amount: string;
-}
 
 class PoolService {
   async savePool(pool: Partial<Pool>): Promise<Pool> {

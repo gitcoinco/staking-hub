@@ -5,11 +5,19 @@ const router = Router();
 
 /**
  * @swagger
- * /recipient/rewards:
+ * /recipient/{recipientId}/rewards:
  *   post:
  *     tags:
  *       - recipient
  *     summary: Retrieves rewards for a recipient
+ *     parameters:
+ *       - in: path
+ *         name: recipientId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the recipient
+ *         example: "0x5cdb35fADB8262A3f88863254c870c2e6A848CcA"
  *     requestBody:
  *       required: true
  *       content:
@@ -21,10 +29,6 @@ const router = Router();
  *                 type: string
  *                 description: Signature of the sender which should be a manager of the pool
  *                 example: "0xdeadbeef"
- *               recipientId:
- *                 type: string
- *                 description: The recipient ID to filter rewards
- *                 example: "0x5cdb35fADB8262A3f88863254c870c2e6A848CcA"
  *               alloPoolId:
  *                 type: string
  *                 description: Optional allo pool ID to filter rewards
@@ -38,6 +42,21 @@ const router = Router();
  *     responses:
  *       200:
  *         description: Successfully retrieved rewards for recipient
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   recipientId:
+ *                     type: string
+ *                   amount:
+ *                     type: string
+ *                   proof:
+ *                     type: array
+ *                     items:
+ *                       type: string
  *       400:
  *         description: Invalid request parameters
  *       500:
@@ -49,6 +68,8 @@ router.post('/rewards', getRewardsForRecipient);
  * @swagger
  * /recipient/{recipientId}/stakes:
  *   get:
+ *     tags:
+ *       - recipient
  *     summary: Get all stakes for a recipient for all finalized pools or a specific pool
  *     parameters:
  *       - in: path
@@ -82,14 +103,19 @@ router.post('/rewards', getRewardsForRecipient);
  *               items:
  *                 type: object
  *                 properties:
- *                   stakeId:
- *                     type: string
+ *                   chainId:
+ *                     type: number
  *                   amount:
  *                     type: string
  *                   poolId:
  *                     type: string
+ *                   recipient:
+ *                     type: string
+ *                   sender:
+ *                     type: string
+ *                   blockTimestamp:
+ *                     type: string
  *       400:
- *         description: Invalid recipientId, chainId, or alloPoolId format
  *       404:
  *         description: Recipient not found
  *       500:
