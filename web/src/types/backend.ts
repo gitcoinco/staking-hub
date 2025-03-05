@@ -173,4 +173,12 @@ export interface StakerOverview {
   poolsOverview: PoolOverview[];
   stakes: Stake[];
   rewards: RewardWithoutProof[];
+  claims: Claim[];
+}
+
+export interface Claim {
+  chainId: number;
+  poolId: string;
+  amount: string;
+  claimant: string;
 }

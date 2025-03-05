@@ -80,20 +80,20 @@ export const getStakerOverview = async (req: Request, res: Response): Promise<vo
   const { staker } = req.params;
 
   // get staked amount from contract
-  const [error, stakedData] = await catchError(indexerClient.getPoolStakesByStaker({staker: getAddress(staker)}));
+  const [error, stakedClaimedData] = await catchError(indexerClient.getPoolStakesAndClaimsByStaker({staker: getAddress(staker)}));
 
-  if (error !== undefined || stakedData === undefined) {
+  if (error !== undefined || stakedClaimedData === undefined) {
     logger.error('Error fetching staked amount:', error);
     res.status(500).json({ error: 'Internal server error' });
     throw new ServerError(`Error fetching staked amount for staker ${staker}`);
   }
 
-  const totalStaked = stakedData.staked.reduce((acc, stake) => acc + Number(stake.amount), 0);
-  const unstakedAmount = stakedData.unstaked.reduce((acc, unstake) => acc + Number(unstake.amount), 0);
+  const totalStaked = stakedClaimedData.staked.reduce((acc, stake) => acc + Number(stake.amount), 0);
+  const unstakedAmount = stakedClaimedData.unstaked.reduce((acc, unstake) => acc + Number(unstake.amount), 0);
   const currentlyStaked = totalStaked - unstakedAmount;
 
   // Group pools by chainId to efficiently fetch metadata from grants-stack indexer
-  const poolsByChainId = stakedData.staked.reduce<Record<number, string[]>>((acc, stake) => {
+  const poolsByChainId = stakedClaimedData.staked.reduce<Record<number, string[]>>((acc, stake) => {
     const poolId = stake.poolId;
     const chainId = stake.chainId;
     if (!(chainId in acc)) {
@@ -133,11 +133,12 @@ export const getStakerOverview = async (req: Request, res: Response): Promise<vo
 
   const stakerOverview: StakerOverview = {
     currentlyStaked,
-    stakes: stakedData.staked,
+    stakes: stakedClaimedData.staked,
     rewards: rewards.map((reward) => ({
       staker: reward.staker,
       amount: reward.amount,
     })),
+    claims: stakedClaimedData.claims,
     poolsOverview,
   };
 

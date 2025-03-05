@@ -101,6 +101,10 @@ router.post('/:staker/rewards', getRewardsForStaker);
  *                   type: array
  *                   items:
  *                     type: object
+ *                 claims:
+ *                   type: array
+ *                   items:
+ *                     type: object
  *       400:
  *         description: Invalid request parameters
  *       500:
