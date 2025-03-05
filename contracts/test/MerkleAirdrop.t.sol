@@ -21,6 +21,8 @@ contract MerkleAirdropTest is Test {
     address public recipient1;
     address public recipient2;
     bytes32 public merkleRoot;
+    uint256 public chainId;
+    uint256 public poolId;
 
     // Test data for merkle tree
     bytes32[] public proof1;
@@ -28,7 +30,7 @@ contract MerkleAirdropTest is Test {
     uint256 public amount1 = 100 * 10 ** 18;
     uint256 public amount2 = 200 * 10 ** 18;
 
-    event Claim(address indexed claimant, uint256 amount);
+    event Claim(address indexed claimant, uint256 amount, uint256 chainId, uint256 poolId);
     event Clawback(address indexed clawbackAddress, uint256 amount, address token);
 
     function setUp() public {
@@ -37,6 +39,10 @@ contract MerkleAirdropTest is Test {
         sender = makeAddr("sender");
         recipient1 = makeAddr("recipient1");
         recipient2 = makeAddr("recipient2");
+
+        // Set chain and pool IDs for testing
+        chainId = 1;
+        poolId = 1;
 
         // Deploy token and mint to sender
         token = new MockToken();
@@ -58,7 +64,7 @@ contract MerkleAirdropTest is Test {
         proof2[0] = leaf1;
 
         // Deploy airdrop contract
-        airdrop = new MerkleAirdrop(matchingPool, sender, token, merkleRoot);
+        airdrop = new MerkleAirdrop(matchingPool, sender, token, merkleRoot, chainId, poolId);
 
         // Transfer tokens to sender and approve airdrop contract
         token.transfer(sender, 1000 * 10 ** 18);
@@ -71,14 +77,16 @@ contract MerkleAirdropTest is Test {
         assertEq(address(airdrop.sender()), sender);
         assertEq(address(airdrop.token()), address(token));
         assertEq(airdrop.merkleRoot(), merkleRoot);
+        assertEq(airdrop.chainId(), chainId);
+        assertEq(airdrop.poolId(), poolId);
         assertEq(airdrop.owner(), address(this));
     }
 
     function testClaimTokens() public {
         uint256 initialBalance = token.balanceOf(recipient1);
 
-        vm.expectEmit(true, true, false, false);
-        emit Claim(recipient1, amount1);
+        vm.expectEmit(true, true, true, true);
+        emit Claim(recipient1, amount1, chainId, poolId);
 
         vm.prank(recipient1);
         airdrop.claimTokens(recipient1, amount1, proof1, false);

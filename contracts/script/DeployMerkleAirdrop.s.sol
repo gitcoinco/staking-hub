@@ -12,9 +12,11 @@ contract DeployMerkleAirdrop is Script {
         address sender = vm.envAddress("SENDER_ADDRESS");
         address token = vm.envAddress("TOKEN_ADDRESS");
         bytes32 merkleRoot = vm.envBytes32("MERKLE_ROOT");
+        uint256 chainId = vm.envUint("CHAIN_ID");
+        uint256 poolId = vm.envUint("POOL_ID");
 
         vm.startBroadcast();
-        MerkleAirdrop airdrop = new MerkleAirdrop(matchingPool, sender, IERC20(token), merkleRoot);
+        MerkleAirdrop airdrop = new MerkleAirdrop(matchingPool, sender, IERC20(token), merkleRoot, chainId, poolId);
         vm.stopBroadcast();
 
         return airdrop;

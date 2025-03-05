@@ -13,7 +13,7 @@ contracts:
   - name: MerkleAirdrop
     handler: src/MerkleAirdropHandlers.ts
     events:
-      - event: "Claim(address indexed claimant, uint256 amount)"
+      - event: "Claim(address indexed claimant, uint256 amount, uint256 chainId, uint256 poolId)"
       - event: "MerkleRootChanged(bytes32 merkleRoot)"
       - event: "OwnershipTransferred(address indexed previousOwner, address indexed newOwner)"
       - event: "Clawback(address indexed clawbackAddress, uint256 amount, address token)"
