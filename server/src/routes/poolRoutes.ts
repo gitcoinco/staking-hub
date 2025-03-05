@@ -176,10 +176,27 @@ router.get('/:chainId/:alloPoolId/summary', getPoolSummary);
  *   get:
  *     tags:
  *       - pool
- *     summary: Retrieves all pools overview and total staked
+ *     summary: Retrieves all pools overview, approvedProjectCount and total staked
  *     responses:
  *       200:
  *         description: Successfully retrieved all pools overview
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   totalStaked:
+ *                     type: number
+ *                   approvedProjectCount:
+ *                     type: number
+ *                   chainId:
+ *                     type: number
+ *                   roundMetadata:
+ *                     type: object
+ *                   roundMetadataCid:
+ *                     type: string
  */
 router.get('/overview', getAllPoolsOverview);
 

@@ -5,7 +5,7 @@ import { createLogger } from '@/logger';
 
 import { IsNullError, NotFoundError, ServerError } from '@/errors';
 import { type PoolIdChainId } from './types';
-import { indexerClient, RoundWithStakes } from '@/ext/indexer';
+import { indexerClient, PoolOverview, Round, RoundWithStakes } from '@/ext/indexer';
 import { type Pool } from '@/entity/Pool';
 
 const logger = createLogger();
@@ -127,7 +127,7 @@ export const getPoolSummary = async (req: Request, res: Response): Promise<void>
 }
 
 /**
- * Get all pools overview
+ * Get all pools overview with total stakes per pool
  * 
  * @param req - Express request object
  * @param res - Express response object
@@ -142,5 +142,33 @@ export const getAllPoolsOverview = async (req: Request, res: Response): Promise<
     throw new ServerError(`Error fetching pools`);
   }
 
-  res.status(200).json(pools);
+  const poolsOverview: Partial<PoolOverview>[] = [];
+
+  // Group pools by chainId to efficiently fetch metadata from grants-stack indexer
+  const poolsByChainId = pools.reduce<Record<number, Pool[]>>((acc, pool) => {
+    if (!(pool.chainId in acc)) {
+      acc[pool.chainId] = [];
+    }
+    acc[pool.chainId].push(pool);
+    return acc;
+  }, {});
+
+  for (const chainId in poolsByChainId) {
+    const [errorFetching, indexerPoolData] = await catchError(
+      indexerClient.getRoundsWithApplicationsCountAndStakedAmount({
+        chainId: Number(chainId),
+        roundIds: poolsByChainId[chainId].map((pool) => pool.alloPoolId),
+      })
+    );
+
+    if (errorFetching !== undefined || indexerPoolData === undefined || indexerPoolData === null || indexerPoolData.length === 0) {
+      logger.error('Error fetching indexer pool data:', errorFetching);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    poolsOverview.push(...indexerPoolData);
+  }
+
+  logger.info(`Fetched ${poolsOverview.length} pools overview`);
+  res.status(200).json(poolsOverview);
 }

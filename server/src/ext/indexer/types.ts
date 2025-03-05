@@ -88,6 +88,16 @@ export interface RoundApplicationsQueryResponse {
   rounds: RoundWithApplications[];
 }
 
+export interface RoundWithApplicationsStatusQueryResponse {
+  rounds: RoundWithApplicationsStatus[];
+}
+
+export interface RoundWithApplicationsStatus extends Round {
+  applications: {
+    status: Status;
+  }[];
+}
+
 export interface ApplicationWithRound {
   id: string;
   chainId: number;
@@ -159,4 +169,9 @@ export interface RoundWithStakes extends RoundWithApplications {
 export interface RewardWithoutProof {
   recipientId: string;
   amount: string;
+}
+
+export interface PoolOverview extends Round {
+  totalStaked: number;
+  approvedProjectCount: number;
 }

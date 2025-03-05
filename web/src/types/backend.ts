@@ -160,3 +160,8 @@ export interface RewardWithoutProof {
   recipientId: string;
   amount: string;
 }
+
+export interface PoolOverview extends Round {
+  totalStaked: number;
+  approvedProjectCount: number;
+}

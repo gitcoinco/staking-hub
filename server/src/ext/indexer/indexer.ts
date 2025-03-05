@@ -8,6 +8,8 @@ import type {
   PoolStakesQueryResponse,
   Stake,
   RoundMatchingDistributions,
+  PoolOverview,
+  RoundWithApplicationsStatusQueryResponse,
 } from './types';
 import request from 'graphql-request';
 import {
@@ -16,6 +18,7 @@ import {
   getRounds,
   getPoolStakes,
   getPoolStakesForRecipient,
+  getRoundsWithApplicationsStatus,
 } from './queries';
 import type { Logger } from 'winston';
 import { IsNullError, NotFoundError } from '@/errors';
@@ -125,6 +128,51 @@ class IndexerClient {
         `Failed to fetch round with applications: ${error.message}`,
         { error }
       );
+      throw error;
+    }
+  }
+
+  async getRoundsWithApplicationsCountAndStakedAmount({
+    chainId,
+    roundIds,
+  }: {
+    chainId: number;
+    roundIds: string[];
+  }): Promise<PoolOverview[]> {
+    const requestVariables = { chainId, roundIds };
+    try {
+      const response: RoundWithApplicationsStatusQueryResponse = await request(
+        this.indexerEndpoint,
+        getRoundsWithApplicationsStatus,
+        requestVariables
+      );
+
+      const rounds = response.rounds;
+
+      const poolOverview: PoolOverview[] = [];
+
+      for (const round of rounds) {
+        const stakes = await this.getPoolStakes({
+          chainId,
+          poolId: Number(round.id),
+        });
+
+        const totalStaked = stakes.reduce((acc, stake) => acc + Number(stake.amount), 0);
+
+        poolOverview.push({
+          chainId,
+          id: round.id,
+          roundMetadata: round.roundMetadata,
+          roundMetadataCid: round.roundMetadataCid,
+          totalStaked,
+          approvedProjectCount: round.applications.filter((application) => application.status === "APPROVED").length,
+        });
+
+      }
+
+      return poolOverview;
+    } catch (error) {
+      this.logger.error(`Failed to fetch round with applications count: ${error.message}`, { error });
       throw error;
     }
   }

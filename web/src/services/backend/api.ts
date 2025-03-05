@@ -1,4 +1,4 @@
-import { RewardWithoutProof, RoundWithStakes, Stake } from "@/types";
+import { PoolOverview, RewardWithoutProof, RoundWithStakes, Stake } from "@/types";
 
 const GET = async (url: string) => {
   const response = await fetch(url, {
@@ -25,6 +25,17 @@ export async function getPoolSummary(alloPoolId: string, chainId: number): Promi
     return response;
   } catch (error) {
     console.error("Error fetching pool info and stakes:", error);
+    throw error;
+  }
+}
+
+export async function getAllPoolsOverview(): Promise<PoolOverview[]> {
+  try {
+    const url = `${import.meta.env.VITE_STAKING_HUB_ENDPOINT}/api/pools/overview`;
+    const response: PoolOverview[] = await GET(url);
+    return response;
+  } catch (error) {
+    console.error("Error fetching all pools overview:", error);
     throw error;
   }
 }
