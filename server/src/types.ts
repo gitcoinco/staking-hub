@@ -11,7 +11,7 @@ export interface CalculatedReward {
 export interface MerkleData {
   merkleRoot: string;
   rewards: Array<{
-    recipientId: string;
+    staker: string;
     amount: string;
     proof: string[];
   }>;

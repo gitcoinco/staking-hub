@@ -90,16 +90,6 @@ export interface RoundApplicationsQueryResponse {
   rounds: RoundWithApplications[];
 }
 
-export interface RoundWithApplicationsStatusQueryResponse {
-  rounds: RoundWithApplicationsStatus[];
-}
-
-export interface RoundWithApplicationsStatus extends Round {
-  applications: {
-    status: Status;
-  }[];
-}
-
 export interface ApplicationWithRound {
   id: string;
   chainId: number;
@@ -161,12 +151,6 @@ export interface Stake {
 
 export interface PoolStakesQueryResponse {
   TokenLock_Locked: Stake[];
-  TokenLock_Claimed: UnStake[];
-}
-
-export interface UnStake {
-  owner: string;
-  amount: string;
 }
 
 export interface RoundWithStakes extends RoundWithApplications {
@@ -175,7 +159,7 @@ export interface RoundWithStakes extends RoundWithApplications {
 }
 
 export interface RewardWithoutProof {
-  staker: string;
+  recipientId: string;
   amount: string;
 }
 
@@ -183,6 +167,7 @@ export interface PoolOverview extends Round {
   totalStaked: number;
   approvedProjectCount: number;
 }
+
 export interface StakerOverview {
   currentlyStaked: number;
   poolsOverview: PoolOverview[];

@@ -2,6 +2,8 @@ type MerkleAirdrop_Claim {
   id: ID!
   claimant: String!
   amount: BigInt!
+  chainId: BigInt!
+  poolId: BigInt!
 }
 
 type MerkleAirdrop_MerkleRootChanged {

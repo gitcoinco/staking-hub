@@ -6,7 +6,7 @@ import {
 } from 'typeorm';
 
 export interface Reward {
-  recipientId: string;
+  staker: string;
   amount: string;
   proof: string[];
 }

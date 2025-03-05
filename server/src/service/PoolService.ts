@@ -1,11 +1,7 @@
 import { type Reward, type Pool } from '@/entity/Pool';
 import { AlreadyExistsError } from '@/errors';
+import { RewardWithoutProof } from '@/ext/indexer';
 import { poolRepository } from '@/repository';
-
-interface RewardWithoutProof {
-  recipientId: string;
-  amount: string;
-}
 
 class PoolService {
   async savePool(pool: Partial<Pool>): Promise<Pool> {
@@ -52,27 +48,27 @@ class PoolService {
   async getPoolRewards(
     chainId: number,
     alloPoolId: string,
-    recipient?: string
+    staker?: string
   ): Promise<RewardWithoutProof[]> {
     const pool = await this.getPoolByChainIdAndAlloPoolId(chainId, alloPoolId);
     if (pool == null) {
       throw new Error('Pool not found');
     }
     
-    const rewards = pool.rewards.filter((reward) => reward.recipientId === recipient);
+    const rewards = pool.rewards.filter((reward) => reward.staker === staker);
     
     if (rewards.length === 0) {
       throw new Error('No rewards found');
     }
 
     return rewards.map((reward) => ({
-      recipientId: reward.recipientId,
+      staker: reward.staker,
       amount: reward.amount,
     }));
   }
 
-  async getRewardsForRecipient(
-    recipient: string,
+  async getRewardsForStaker(
+    staker: string,
     chainId?: number,
     alloPoolId?: string,
   ): Promise<Reward[]> {
@@ -89,8 +85,8 @@ class PoolService {
       pools = await this.getAllPools();
     }
 
-    // Filter rewards by recipient
-    const rewards: Reward[] = pools.flatMap(pool => pool.rewards).filter(reward => reward.recipientId === recipient);
+    // Filter rewards by staker
+    const rewards: Reward[] = pools.flatMap(pool => pool.rewards).filter(reward => reward && reward.staker === staker);
 
     return rewards;
   }
