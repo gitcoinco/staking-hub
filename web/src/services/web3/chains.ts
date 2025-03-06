@@ -8,10 +8,8 @@ const chainData = getChains();
 const { alchemyId, infuraId, isDevelopment, availableNetworks } = {
   alchemyId: import.meta.env.VITE_ALCHEMY_ID,
   infuraId: import.meta.env.VITE_INFURA_ID,
-  isDevelopment: import.meta.env.VITE_ENV === "development",
-  availableNetworks: chainData
-    .filter((chain) => Boolean(chain.contracts.retroFunding))
-    .map((chain) => chain.id),
+  isDevelopment: import.meta.env.VITE_ENV === "devlopment",
+  availableNetworks: [chains.sepolia.id, chains.arbitrum.id],
 };
 
 interface RpcConfig {
@@ -49,7 +47,10 @@ interface ChainConfig {
 }
 
 // RPC URL helper functions
-const appendProviderKey = (url: string, provider: "alchemy" | "infura"): string => {
+const appendProviderKey = (
+  url: string,
+  provider: "alchemy" | "infura"
+): string => {
   const envKey = provider === "alchemy" ? alchemyId : infuraId;
 
   return envKey ? url + envKey : url;
@@ -75,7 +76,9 @@ export function stringToBlobUrl(data: string): string {
 }
 
 export const parseRainbowChain = (chain: TChain): Chain => {
-  const nativeToken = chain.tokens.find((token) => token.address === zeroAddress);
+  const nativeToken = chain.tokens.find(
+    (token) => token.address === zeroAddress
+  );
 
   const rpc = getRpcUrl(chain);
 
@@ -110,25 +113,40 @@ export const parseRainbowChain = (chain: TChain): Chain => {
 };
 
 const filterChainsByEnvironment = (isDevelopment: boolean): TChain[] => {
-  return isDevelopment ? chainData : chainData.filter((chain) => chain.type === "mainnet");
+  return isDevelopment
+    ? chainData
+    : chainData.filter((chain) => chain.type === "mainnet");
 };
 
-const filterChainsByAvailability = (chains: TChain[], availableNetworks: number[]): TChain[] => {
+const filterChainsByAvailability = (
+  chains: TChain[],
+  availableNetworks: number[]
+): TChain[] => {
   return chains.filter((chain) => availableNetworks.includes(chain.id));
 };
 
 export const getTargetNetworks = (config: ChainConfig): [Chain, ...Chain[]] => {
   const environmentChains = filterChainsByEnvironment(config.isDevelopment);
-  const availableChains = filterChainsByAvailability(environmentChains, config.availableNetworks);
+  const availableChains = filterChainsByAvailability(
+    environmentChains,
+    config.availableNetworks
+  );
 
-  const parsedChains = availableChains.map(parseRainbowChain) as [Chain, ...Chain[]];
+  const parsedChains = availableChains.map(parseRainbowChain) as [
+    Chain,
+    ...Chain[],
+  ];
 
-  return parsedChains.length > 0 ? parsedChains : ([chains.mainnet] as [Chain, ...Chain[]]);
+  return parsedChains.length > 0
+    ? parsedChains
+    : ([chains.mainnet] as [Chain, ...Chain[]]);
 };
 
 // Export chain data
 export const allNetworks = chainData;
-export const mainnetNetworks = chainData.filter((chain) => chain.type === "mainnet");
+export const mainnetNetworks = chainData.filter(
+  (chain) => chain.type === "mainnet"
+);
 
 export const targetNetworks = getTargetNetworks({
   availableNetworks,

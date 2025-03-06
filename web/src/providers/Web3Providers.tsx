@@ -20,12 +20,17 @@ export const Web3Providers = ({ children }: { children: React.ReactNode }) => {
         <RainbowKitProvider
           theme={{
             ...lightTheme(),
-            colors: { ...lightTheme().colors, accentColor: "#22635a" },
+            colors: {
+              ...lightTheme().colors,
+              accentColor: "#E5F4D3",
+              accentColorForeground: "#000000",
+            },
           }}
+          initialChain={42161}
         >
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
-}; 
+};

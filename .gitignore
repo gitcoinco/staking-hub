@@ -17,3 +17,6 @@ docs/
 
 # Dotenv file
 contracts/.env
+
+# Web
+web/.env
