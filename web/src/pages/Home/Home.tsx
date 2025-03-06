@@ -7,17 +7,17 @@ import { useNavigate } from "react-router-dom";
 const statCardGroupProps: StatCardGroupProps = {
   stats: [
     {
-      label: "Total GTC Staked",
+      label: "Current GTC staked",
       value: "1200 GTC",
       className: "bg-moss-50 w-full",
     },
     {
-      label: "Estimated rewards",
+      label: "Total rewards",
       value: "$600.00",
       className: "bg-purple-50 w-full",
     },
     {
-      label: "Active stakes",
+      label: "Total # of stakes",
       value: "3",
       className: "bg-blue-50 w-full",
     },
@@ -30,7 +30,6 @@ const stakePoolCardProps: StakePoolDataCardProps[] = [
     roundDescription: "Stake Pool 1 description",
     chainId: 10,
     roundId: "1",
-    logoImg: "https://picsum.photos/100",
     votingStartDate: new Date(),
     votingEndDate: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 60),
     totalProjects: 10,
@@ -47,7 +46,6 @@ const stakePoolCardProps: StakePoolDataCardProps[] = [
     roundDescription: "Stake Pool 2 description",
     chainId: 10,
     roundId: "2",
-    logoImg: "https://picsum.photos/101",
     votingStartDate: new Date(),
     votingEndDate: new Date(),
     totalProjects: 10,
