@@ -26,6 +26,7 @@ TokenLock.Locked.handler(async ({ event, context }) => {
     poolId: event.params.poolId,
     recipient: event.params.recipientId,
     amount: event.params.amount,
+    blockTimestamp: event.block.timestamp,
   };
 
   context.TokenLock_Locked.set(entity);

@@ -22,8 +22,32 @@ export class NotFoundError extends BaseError {
   }
 }
 
+export class AlreadyExistsError extends BaseError {
+  constructor(message: string) {
+    super(message, 409);
+  }
+}
+
 export class IsNullError extends BaseError {
   constructor(message: string) {
     super(message, 500);
+  }
+}
+
+export class ServerError extends BaseError {
+  constructor(message: string) {
+    super(message, 500);
+  }
+}
+
+export class UnauthorizedError extends BaseError {
+  constructor(message: string) {
+    super(message, 401);
+  }
+}
+
+export class ActionNotAllowedError extends BaseError {
+  constructor(message: string) {
+    super(message, 403);
   }
 }
