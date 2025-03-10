@@ -11,6 +11,8 @@ MerkleAirdrop.Claim.handler(async ({ event, context }) => {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     claimant: event.params.claimant,
     amount: event.params.amount,
+    chainId: event.params.chainId,
+    poolId: event.params.poolId,
   };
 
   context.MerkleAirdrop_Claim.set(entity);

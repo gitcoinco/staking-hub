@@ -1,12 +1,11 @@
 import type { Request, Response } from 'express';
-import { IsNullError } from '@/errors';
+import { IsNullError, NotFoundError, ServerError } from '@/errors';
 import { createLogger } from '@/logger';
 import { catchError, validateRequest } from '@/utils/utils';
-import { Pool } from '@/entity/Pool';
-import { poolRepository } from '@/repository';
 
-import type { Project, Stake } from '@/types';
-import { calculateRewards, generateMerkleData } from '@/utils/calc';
+import { calculateRewards, generateMerkleData } from '@/utils/calculations';
+import poolService from '@/service/PoolService';
+import { indexerClient } from '@/ext/indexer';
 
 const logger = createLogger();
 
@@ -14,91 +13,116 @@ interface CalculateRequestBody {
   chainId: number;
   alloPoolId: string;
   totalRewardPool: bigint;
-  totalMatchAmount: bigint;
-  totalDuration: bigint;
 }
 
 export const calculate = async (
   req: Request<Record<string, never>, unknown, CalculateRequestBody>,
   res: Response
 ): Promise<void> => {
-  validateRequest(req, res);
+  try {
+    validateRequest(req, res);
 
-  const {
-    chainId,
-    alloPoolId,
-    totalRewardPool,
-    totalMatchAmount,
-    totalDuration,
-  } = req.body;
+    const {
+      chainId,
+      alloPoolId,
+      totalRewardPool,
+    } = req.body;
 
-  const [errorFetchingProjects, projects] = await catchError(
-    fetchProjects(chainId, alloPoolId)
-  );
+    const [errorFetchingMatchingDistribution, roundCalculationInfo] =
+      await catchError(indexerClient.getRoundMatchingDistributions({
+        chainId,
+        roundId: alloPoolId,
+      }));
 
-  if (errorFetchingProjects !== null) {
-    logger.error('Error fetching projects:', errorFetchingProjects);
+    if (errorFetchingMatchingDistribution !== undefined || roundCalculationInfo === undefined) {
+      logger.error('Error fetching matching distribution:', errorFetchingMatchingDistribution);
+      res.status(500).json({ error: 'Internal server error' });
+      throw new ServerError(`Error fetching matching distribution: ${errorFetchingMatchingDistribution?.message} `);
+    }
+
+    const [errorFetchingRoundWithApplications, roundWithApplications] =
+      await catchError(indexerClient.getRoundsWithApplications({
+        chainId,
+        roundIds: [alloPoolId],
+      }));
+
+    if (errorFetchingRoundWithApplications !== undefined || roundWithApplications === undefined || roundWithApplications === null) {
+      logger.error('Error fetching round with applications:', errorFetchingRoundWithApplications);
+      res.status(500).json({ error: 'Internal server error' });
+      throw new ServerError(`Error fetching round with applications: ${errorFetchingRoundWithApplications?.message} `);
+    }
+      
+      
+
+    const totalMatchAmount = roundCalculationInfo.matchAmount;
+    const matchingDistribution = roundCalculationInfo.matchingDistribution.matchingDistribution;
+    // todo: change the date string to the actual end time: matchingDistribution.donationsEndTime
+    const totalDuration = BigInt(new Date("Mar-05-2025 08:39:24 AM UTC").getTime() / 1000);
+    
+    const [errorFetchingStakes, stakes] = await catchError(
+      indexerClient.getPoolStakes({
+        chainId,
+        poolId: Number(alloPoolId),
+      })
+    );
+
+    if (errorFetchingStakes !== undefined) {
+      logger.error('Error fetching stakes:', errorFetchingStakes);
+      res.status(500).json({ error: 'Internal server error' });
+      throw new ServerError(`Error fetching stakes for pool ${alloPoolId}`);
+    }
+
+    if (stakes === undefined || stakes.length === 0) {
+      logger.error('No stakes found for pool:', alloPoolId);
+      res.status(404).json({ error: 'No stakes found for pool' });
+      throw new NotFoundError(`No stakes found for pool ${alloPoolId}`);
+    }
+
+    // Validate required parameters
+    if (
+      chainId === undefined ||
+      alloPoolId === undefined ||
+      !Array.isArray(matchingDistribution) ||
+      !Array.isArray(stakes) ||
+      typeof totalRewardPool !== 'string'
+    ) {
+      throw new IsNullError('Missing required parameters');
+    }
+
+    const matchingDistributionWithAnchorAddress = matchingDistribution.map((distribution) => ({
+      ...distribution,
+      anchorAddress: roundWithApplications[0].applications.find((application) => application.projectId.toLowerCase() === distribution.projectId.toLowerCase())?.anchorAddress ?? '',
+    }));
+
+    const calculatedRewards = calculateRewards(
+      BigInt(totalRewardPool),
+      BigInt(totalMatchAmount),
+      BigInt(totalDuration),
+      matchingDistributionWithAnchorAddress,
+      stakes
+    );
+
+    const { merkleRoot, rewards } = generateMerkleData(calculatedRewards);
+    // Save to database using catchError
+    const pool = await poolService.getPoolByChainIdAndAlloPoolId(chainId, alloPoolId);
+    if (pool === null) {
+      throw new NotFoundError(`Pool ${alloPoolId} not found`);
+    }
+
+    pool.rewards = rewards;
+    pool.merkleRoot = merkleRoot;
+
+    const [error] = await catchError(poolService.savePool(pool));
+
+    if (error !== undefined ) {
+      logger.error('Error saving rewards to database:', error);
+    }
+
+    // Transform rewards to remove proof before sending response
+    const rewardsWithoutProof = rewards.map(({ proof, ...rest }) => rest);
+    res.status(200).json({ success: true, rewards: rewardsWithoutProof });
+  } catch (error) {
+    logger.error('Error in calculate controller:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  const [errorFetchingStakes, stakes] = await catchError(
-    fetchStakes(chainId, alloPoolId)
-  );
-
-  if (errorFetchingStakes !== null) {
-    logger.error('Error fetching stakes:', errorFetchingStakes);
-  }
-
-  // Validate required parameters
-  if (
-    chainId === undefined ||
-    alloPoolId === undefined ||
-    !Array.isArray(projects) ||
-    !Array.isArray(stakes) ||
-    typeof totalRewardPool !== 'bigint' ||
-    typeof totalMatchAmount !== 'bigint' ||
-    typeof totalDuration !== 'bigint'
-  ) {
-    throw new IsNullError('Missing required parameters');
-  }
-
-  const calculatedRewards = calculateRewards(
-    totalRewardPool,
-    totalMatchAmount,
-    totalDuration,
-    projects,
-    stakes
-  );
-
-  const { merkleRoot, rewards } = generateMerkleData(calculatedRewards);
-
-  // Save to database using catchError
-  const pool = new Pool();
-  pool.chainId = chainId;
-  pool.alloPoolId = alloPoolId;
-  pool.rewards = rewards;
-  pool.merkleRoot = merkleRoot;
-
-  const [error] = await catchError(poolRepository.save(pool));
-
-  if (error !== null) {
-    logger.error('Error saving rewards to database:', error);
-  }
-
-  res.status(200).json({ success: true, rewards });
-};
-
-const fetchProjects = async (
-  chainId: number,
-  alloPoolId: string
-): Promise<Project[]> => {
-  // TODO: Implement actual fetching logic
-  return [];
-};
-
-const fetchStakes = async (
-  chainId: number,
-  alloPoolId: string
-): Promise<Stake[]> => {
-  // TODO: Implement actual fetching logic
-  return [];
 };

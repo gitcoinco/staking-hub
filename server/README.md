@@ -16,7 +16,6 @@
 │   ├── service                 # Business logic and service functions
 │   ├── data-source.ts          # Database connection setup and configuration
 │   ├── index.ts                # Application entry point
-│   ├── postgraphile.config.ts  # Postgraphile configuration
 │   ├── repository.ts           # Repositories for data access logic
 │   ├── swagger.ts              # Optional: Swagger setup in TypeScript
 │   └── utils.ts                # Utility functions and helper methods
@@ -57,11 +56,17 @@
 - For [Logging.md](./src//logger/logger.md) to understand use winston for logging
 - For Try catch handling done via [catchError](./src/utils.ts)
 - All routes are documented using [swagger](./src/swagger.ts)
-- Postgraphile endpoint is hosted at `http://localhost:3000/graphiql`
 
-```
-POST Endpoint
-------
-router.post('/pools', syncPool);
-router.post('/allocations', allocations)
-```
+### Flow
+- Round Starts
+- Funder funds pool and the stake rewards pool (with 18k)
+- Projects apply and get approved
+- Projects show up on explorer
+- Anyone with GTC on arbitrum can stake tokens on a project in a round
+- for a every project, we keep track who has staked how much (aka we know the % ) and at what time
+- Once the round ends, QF distribution runs and we know which projects get what % of the pot
+- If project A gets 5% of the pot , then reward pot for staking on project is 5% of 18k (900)
+- This 900 is split between the stakers based on how much % they had staked
+- If wallet1 accounts for 50% of the staked tokens for project A -> they get 50% of 900 (450)
+- If wallet2 accounts for 1% of the staked tokens for project A-> they get 1% of 900 (9)
+

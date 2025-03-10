@@ -1,5 +1,9 @@
 import { calculate } from '@/controllers/calculateController';
-import { syncPool } from '@/controllers/poolController';
+import {
+  createPool,
+  getPoolSummary,
+  getAllPoolsOverview,
+} from '@/controllers/poolController';
 import { Router } from 'express';
 
 const router = Router();
@@ -8,7 +12,9 @@ const router = Router();
  * @swagger
  * /pools:
  *   post:
- *     summary: Syncs a pool with the given poolId and chainId from the indexer
+ *     tags:
+ *       - pool
+ *     summary: Creates a pool
  *     requestBody:
  *       required: true
  *       content:
@@ -23,7 +29,7 @@ const router = Router();
  *               chainId:
  *                 type: number
  *                 description: The chain ID associated with the pool
- *                 example: 42161  # Example of chainId (Arbitrum)
+ *                 example: 42161 # Example of chainId (Sepolia)
  *             required:
  *               - alloPoolId
  *               - chainId
@@ -34,18 +40,15 @@ const router = Router();
  *         description: Invalid poolId or chainId format
  *       500:
  *         description: Internal server error
- *     examples:
- *       application/json:
- *         - value:
- *             alloPoolId: "609"
- *             chainId: "42161"
  */
-router.post('/', syncPool);
+router.post('/', createPool);
 
 /**
  * @swagger
  * /pools/calculate:
  *   post:
+ *     tags:
+ *       - pool
  *     summary: Calculates rewards for a pool based on stakes and projects
  *     requestBody:
  *       required: true
@@ -66,20 +69,10 @@ router.post('/', syncPool);
  *                 type: string
  *                 description: The total amount of rewards available for distribution
  *                 example: "1000000000000000000"
- *               totalMatchAmount:
- *                 type: string
- *                 description: The total amount of matching funds
- *                 example: "500000000000000000"
- *               totalDuration:
- *                 type: string
- *                 description: The total duration for the rewards calculation
- *                 example: "604800"
  *             required:
  *               - chainId
  *               - alloPoolId
  *               - totalRewardPool
- *               - totalMatchAmount
- *               - totalDuration
  *     responses:
  *       200:
  *         description: Rewards calculated successfully
@@ -99,15 +92,116 @@ router.post('/', syncPool);
  *                         type: string
  *                       amount:
  *                         type: string
- *                       proof:
- *                         type: array
- *                         items:
- *                           type: string
  *       400:
  *         description: Invalid request parameters
  *       500:
  *         description: Internal server error
  */
 router.post('/calculate', calculate);
+
+/**
+ * @swagger
+ * /pools/{chainId}/{alloPoolId}/summary:
+ *   get:
+ *     tags:
+ *       - pool
+ *     summary: Retrieves pool application metadata, total stakes per application and all stakes
+ *     parameters:
+ *       - in: path
+ *         name: chainId
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: The chain ID associated with the pool
+ *         example: 42161
+ *       - in: path
+ *         name: alloPoolId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the pool
+ *         example: "609"
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved pool stakes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 stakes:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       chainId:
+ *                         type: number
+ *                       amount:
+ *                         type: string
+ *                       poolId:
+ *                         type: string
+ *                       recipient:
+ *                         type: string
+ *                       sender:
+ *                         type: string
+ *                       blockTimestamp:
+ *                         type: string
+ *                 totalStakesByAnchorAddress:
+ *                   type: object
+ *                   properties:
+ *                     anchorAddress:
+ *                       type: string
+ *                     amount:
+ *                       type: string
+ *                 chainId:
+ *                   type: number
+ *                 id:
+ *                   type: string
+ *                 roundMetadata:
+ *                   type: object
+ *                 applications:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: Invalid chainId or alloPoolId format
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:chainId/:alloPoolId/summary', getPoolSummary);
+
+/**
+ * @swagger
+ * /pools/overview:
+ *   get:
+ *     tags:
+ *       - pool
+ *     summary: Retrieves all pools overview, approvedProjectCount and total staked
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all pools overview
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   totalStaked:
+ *                     type: number
+ *                   approvedProjectCount:
+ *                     type: number
+ *                   chainId:
+ *                     type: number
+ *                   roundMetadata:
+ *                     type: object
+ *                   roundMetadataCid:
+ *                     type: string
+ *                   donationsStartTime:
+ *                     type: string
+ *                   donationsEndTime:
+ *                     type: string
+ */
+router.get('/overview', getAllPoolsOverview);
 
 export default router;

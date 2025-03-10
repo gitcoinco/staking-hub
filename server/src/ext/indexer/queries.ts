@@ -1,12 +1,58 @@
 import { gql } from 'graphql-request';
 
-export const getRoundManager = gql`
-  query RoundManager($chainId: Int!, $alloPoolId: String!) {
+export const getRounds = gql`
+  query Rounds($chainId: Int!, $roundIds: [String!]!) {
+    rounds(filter: { chainId: { equalTo: $chainId }, id: { in: $roundIds } }) {
+      id
+      chainId
+      roundMetadata
+      roundMetadataCid
+      donationsStartTime
+      donationsEndTime
+    }
+  }
+`;
+
+export const getRoundsWithApplications = gql`
+  query RoundsApplications($chainId: Int!, $roundIds: [String!]!) {
     rounds(
-      filter: { chainId: { equalTo: $chainId }, id: { equalTo: $alloPoolId } }
+      filter: { chainId: { equalTo: $chainId }, id: { in: $roundIds } }
     ) {
-      roles {
-        address
+      chainId
+      id
+      roundMetadata
+      roundMetadataCid
+      donationsStartTime
+      donationsEndTime
+      applications {
+        id
+        anchorAddress
+        metadata
+        metadataCid
+        status
+        projectId
+        totalDonationsCount
+        totalAmountDonatedInUsd
+        project: canonicalProject {
+          metadata
+          metadataCid
+        }
+      }
+    }
+  }
+`;
+
+export const getRoundsWithApplicationsStatus = gql`
+  query RoundsWithApplicationsStatus($chainId: Int!, $roundIds: [String!]!) {
+    rounds(filter: { chainId: { equalTo: $chainId }, id: { in: $roundIds } }) {
+      chainId
+      id
+      roundMetadata
+      roundMetadataCid
+      donationsStartTime
+      donationsEndTime
+      applications {
+        status
       }
     }
   }
@@ -21,6 +67,8 @@ export const getRoundWithApplications = gql`
       id
       roundMetadata
       roundMetadataCid
+      donationsStartTime
+      donationsEndTime
       applications {
         id
         metadata
@@ -48,6 +96,69 @@ export const getApplicationWithRound = gql`
       round {
         roundMetadata
       }
+    }
+  }
+`;
+
+export const getRoundMatchingDistributions = gql`
+  query RoundMatchingDistributions($chainId: Int!, $roundId: String!) {
+    rounds(
+      filter: {
+        chainId: { equalTo: $chainId }
+        id: { equalTo: $roundId }
+      }
+    ) {
+      matchAmount
+      donationsEndTime
+      matchingDistribution
+    }
+  }
+`;
+
+export const getPoolStakes = gql`
+  query PoolStakes($chainId: numeric!, $poolId: numeric!) {
+    TokenLock_Locked(
+      where: { chainId: { _eq: $chainId }, poolId: { _eq: $poolId } }
+      order_by: {amount: desc}
+    ) {
+      chainId
+      amount
+      poolId
+      recipient
+      sender
+      blockTimestamp
+    }
+  }
+`;
+
+export const getPoolStakesAndClaimsByStaker = gql`
+  query PoolStakesAndClaimsByStaker($staker: String!) {
+    TokenLock_Locked(
+      where: { sender: { _eq: $staker } }
+      order_by: {amount: desc}
+    ) {
+      chainId
+      amount
+      poolId
+      recipient
+      sender
+      blockTimestamp
+    }
+
+    TokenLock_Claimed(
+      where: { owner: { _eq: $staker } }
+    ) {
+      owner
+      amount
+    }
+
+    MerkleAirdrop_Claim(
+      where: { claimant: { _eq: $staker } }
+    ) {
+      chainId
+      poolId
+      amount
+      claimant
     }
   }
 `;
