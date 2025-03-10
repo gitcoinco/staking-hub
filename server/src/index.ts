@@ -32,7 +32,8 @@ const logger = createLogger();
 
 app.use(cors({
   credentials: true, // Important for SIWE authentication
-  origin: process.env.FRONTEND_URL ?? 'http://localhost:3000'
+  // origin: process.env.FRONTEND_URL ?? 'http://localhost:3000'
+  origin: '*'
 }));
 
 app.get('/', (req, res) => {
