@@ -5,7 +5,7 @@
   "type": "module",
   "dependencies": {
     "@gitcoin/gitcoin-chain-data": "^1.0.44",
-    "@gitcoin/ui": "link:/Users/nick-w3/core/packages/ui",
+    "@gitcoin/ui": "0.0.0-beta.24",
     "@rainbow-me/rainbowkit": "^2.2.0",
     "@tanstack/react-query": "^5.61.5",
     "dotenv": "^16.4.5",

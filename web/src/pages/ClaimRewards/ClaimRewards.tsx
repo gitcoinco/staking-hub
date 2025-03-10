@@ -24,6 +24,8 @@ const simpleRound = {
 const availableToClaimCardProps: StakeProjectCardProps[] = [
   {
     name: "Project Name",
+    description: "Project Description",
+    image: "https://picsum.photos/200",
     variant: "staked",
     id: "1",
     chainId: 1,
@@ -34,6 +36,8 @@ const availableToClaimCardProps: StakeProjectCardProps[] = [
   },
   {
     name: "Project Name",
+    description: "Project Description",
+    image: "https://picsum.photos/200",
     variant: "staked",
     id: "2",
     chainId: 1,
@@ -47,6 +51,8 @@ const availableToClaimCardProps: StakeProjectCardProps[] = [
 const claimRewardsCardProps: StakeProjectCardProps[] = [
   {
     name: "Project Name",
+    description: "Project Description",
+    image: "https://picsum.photos/200",
     variant: "claimed",
     id: "1",
     chainId: 1,
@@ -59,6 +65,8 @@ const claimRewardsCardProps: StakeProjectCardProps[] = [
   },
   {
     name: "Project Name",
+    description: "Project Description",
+    image: "https://picsum.photos/200",
     variant: "claimed",
     id: "2",
     chainId: 1,
@@ -74,6 +82,8 @@ const claimRewardsCardProps: StakeProjectCardProps[] = [
 const upcomingStakeCardProps: StakeProjectCardProps[] = [
   {
     name: "Project Name",
+    description: "Project Description",
+    image: "https://picsum.photos/200",
     variant: "staked",
     id: "1",
     chainId: 1,
@@ -84,6 +94,8 @@ const upcomingStakeCardProps: StakeProjectCardProps[] = [
   },
   {
     name: "Project Name",
+    description: "Project Description",
+    image: "https://picsum.photos/200",
     variant: "staked",
     id: "2",
     chainId: 1,
@@ -95,7 +107,12 @@ const upcomingStakeCardProps: StakeProjectCardProps[] = [
 ];
 
 const claimablePools = [
-  simpleRound,
+  {
+    ...simpleRound,
+    roundId: "91",
+    roundName: "Grants Round Defi",
+    stakedProjects: availableToClaimCardProps,
+  },
   {
     ...simpleRound,
     roundId: "91",
@@ -126,7 +143,7 @@ const claimedPools = [
 
 export const ClaimRewards = () => {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-8">
       <div className="flex justify-between items-center bg-purple-50 rounded-lg py-6 px-[56px]">
         <div className="flex flex-col items-start gap-2">
           <div className="text-grey-900 text-sm font-semibold font-ui-sans leading-7">
@@ -147,23 +164,35 @@ export const ClaimRewards = () => {
           />
         </div>
       </div>
-      <div>Available to claim</div>
-      <div className="flex flex-col gap-4">
-        {claimablePools.map((props) => (
-          <StakePoolCard key={props.roundId} data={props} />
-        ))}
+      <div className="flex flex-col gap-6">
+        <span className=" text-2xl font-medium font-ui-sans leading-7">
+          {`Ready to claim (${claimablePools.length})`}
+        </span>
+        <div className="flex flex-col gap-4">
+          {claimablePools.map((props) => (
+            <StakePoolCard key={props.roundId} data={props} />
+          ))}
+        </div>
       </div>
-      <div>Upcoming stakes</div>
-      <div className="flex flex-col gap-4">
-        {pendingPools.map((props) => (
-          <StakePoolCard key={props.roundId} data={props} />
-        ))}
+      <div className="flex flex-col gap-6">
+        <span className=" text-2xl font-medium font-ui-sans leading-7">
+          {`Pending (${pendingPools.length})`}
+        </span>
+        <div className="flex flex-col gap-4">
+          {pendingPools.map((props) => (
+            <StakePoolCard key={props.roundId} data={props} />
+          ))}
+        </div>
       </div>
-      <div>Claimed stakes</div>
-      <div className="flex flex-col gap-4">
-        {claimedPools.map((props) => (
-          <StakePoolCard key={props.roundId} data={props} />
-        ))}
+      <div className="flex flex-col gap-6">
+        <span className=" text-2xl font-medium font-ui-sans leading-7">
+          {`Claimed (${claimedPools.length})`}
+        </span>
+        <div className="flex flex-col gap-4">
+          {claimedPools.map((props) => (
+            <StakePoolCard key={props.roundId} data={props} />
+          ))}
+        </div>
       </div>
     </div>
   );

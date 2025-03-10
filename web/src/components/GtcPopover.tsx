@@ -12,7 +12,7 @@ import { useBalance } from "wagmi";
 import { getChainInfo } from "@gitcoin/ui/lib";
 import { useClickOutside } from "@gitcoin/ui/hooks/useClickOutside";
 
-export const GetGtcPopover = () => {
+export const GtcPopover = () => {
   const popoverRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(popoverRef, () => {
@@ -32,7 +32,7 @@ export const GetGtcPopover = () => {
     <div className="relative" ref={popoverRef}>
       <div className="flex items-center justify-center gap-2">
         <div
-          className="flex items-center gap-2 cursor-pointer bg-green-50 rounded-3xl px-2 py-1 h-10"
+          className="flex items-center gap-2 cursor-pointer bg-green-50 rounded-3xl px-2 py-1 h-10 shadow-md"
           onClick={() => setIsOpen(!isOpen)}
         >
           <div className="p-1.5 rounded-full bg-green-100">
@@ -77,7 +77,7 @@ export const GetGtcPopover = () => {
               className="w-full bg-blue-100"
             />
           </div>
-          <div className="border-t border-gray-100 w-full" />
+          <div className="border-t border-grey-100 w-full" />
           <div className="flex gap-2 items-center px-1 pt-3 shadow-b-lg ">
             <div
               className="flex justify-start gap-2 cursor-pointer"

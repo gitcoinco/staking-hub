@@ -2,7 +2,7 @@
 
 import { Navbar as GitcoinNavbar } from "@gitcoin/ui";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { GetGtcPopover } from "./GetGtcPopover";
+import { GtcPopover } from "./GtcPopover";
 // TODO: use new navbar and wrap the logo with NavLink of react-router
 export const Navbar = () => {
   return (
@@ -14,7 +14,7 @@ export const Navbar = () => {
       }}
     >
       <div className="flex items-center gap-2">
-        <GetGtcPopover />
+        <GtcPopover />
         <ConnectButton chainStatus="icon" />
       </div>
     </GitcoinNavbar>

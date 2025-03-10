@@ -1,4 +1,4 @@
-import { StakeProjectCard, StakeProjectCardProps } from "@gitcoin/ui/project";
+import { StakeProjectCard } from "@gitcoin/ui/project";
 import { useCallback, useState, useMemo } from "react";
 import { Badge, Button, Icon, IconLabel, IconType, Input } from "@gitcoin/ui";
 import { DateFormat, getChainInfo } from "@gitcoin/ui/lib";
@@ -6,6 +6,7 @@ import { DateFormat, getChainInfo } from "@gitcoin/ui/lib";
 const mockStakeProjectCardProps: any[] = [
   {
     name: "Project1",
+    image: "https://picsum.photos/200",
     variant: "leaderboard",
     id: "1",
     chainId: 1,
@@ -18,6 +19,7 @@ const mockStakeProjectCardProps: any[] = [
   },
   {
     name: "Project2",
+    image: "https://picsum.photos/201",
     variant: "leaderboard",
     id: "2",
     chainId: 1,
@@ -30,6 +32,7 @@ const mockStakeProjectCardProps: any[] = [
   },
   {
     name: "Project3",
+    image: "https://picsum.photos/202",
     variant: "leaderboard",
     id: "3",
     chainId: 1,
@@ -48,36 +51,55 @@ export const StakingRound = () => {
   const [applicationsToStakeAmount, setApplicationsToStakeAmount] = useState<
     Record<string, number>
   >({});
-
-  const totalStaked = useMemo(() => {
-    return Object.values(applicationsToStakeAmount).reduce(
-      (sum, amount) => sum + amount,
-      0
-    );
-  }, [applicationsToStakeAmount]);
-
-  const chainInfo = getChainInfo(1);
-
-  const handleStakeChange = useCallback((projectId: string, amount: number) => {
-    setApplicationsToStakeAmount((prev) => {
-      const otherProjectsTotal = Object.entries(prev)
-        // .filter(([id]) => id !== projectId)
-        .reduce((sum, [, amount]) => sum + amount, 0);
-
-      const maxStake = Math.max(0, userGTCBalance - otherProjectsTotal);
-      const newAmount = Math.min(maxStake, Math.max(0, amount));
-
-      return {
-        ...prev,
-        [projectId]: newAmount,
-      };
-    });
-  }, []);
-
   const [amountToApplyToAll, setAmountToApplyToAll] = useState<number | null>(
     null
   );
 
+  const chainInfo = getChainInfo(1);
+  const numProjects = mockStakeProjectCardProps.length;
+
+  // Derived total staked
+  const totalStaked = useMemo(
+    () =>
+      Object.values(applicationsToStakeAmount).reduce(
+        (sum, amount) => sum + amount,
+        0
+      ),
+    [applicationsToStakeAmount]
+  );
+
+  const handleStakeChange = useCallback((projectId: string, amount: number) => {
+    setApplicationsToStakeAmount((prev) => ({
+      ...prev,
+      [projectId]: Math.max(0, amount),
+    }));
+  }, []);
+
+  const handleApplyToAll = useCallback(() => {
+    if (amountToApplyToAll === null) return;
+
+    const maxPerProject = userGTCBalance / numProjects;
+    const clampedValue = Math.min(amountToApplyToAll, maxPerProject);
+
+    const newStakes = mockStakeProjectCardProps.reduce(
+      (acc, project) => ({
+        ...acc,
+        [project.id]: clampedValue,
+      }),
+      {}
+    );
+
+    setApplicationsToStakeAmount(newStakes);
+  }, [amountToApplyToAll, numProjects]);
+  // Add this helper function at the top
+  const calculateMaxStake = (
+    userBalance: number,
+    totalStaked: number,
+    currentStake: number
+  ) => {
+    const remainingBalance = userBalance - (totalStaked - currentStake);
+    return Math.max(0, Math.min(remainingBalance, userBalance));
+  };
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-col gap-2">
@@ -139,30 +161,44 @@ export const StakingRound = () => {
               value="Apply to All"
               variant="light-purple"
               className="text-purple-700"
+              onClick={handleApplyToAll}
             />
           </div>
         </div>
         <div className="flex flex-col gap-4">
           {mockStakeProjectCardProps.map((props) => {
             const currentStake = applicationsToStakeAmount[props.id] || 0;
-            const otherProjectsTotal = totalStaked;
-            const maxStake = Math.max(0, userGTCBalance - otherProjectsTotal);
+            const maxStake = calculateMaxStake(
+              userGTCBalance,
+              totalStaked,
+              currentStake
+            );
 
             return (
               <StakeProjectCard
                 key={props.id}
                 {...props}
-                onStakeChange={(amount) =>
-                  handleStakeChange(
-                    props.id,
-                    Math.min(Number(amount), maxStake)
-                  )
-                }
+                onStakeChange={handleStakeChange}
                 maxStakeAmount={maxStake}
-                currentStakeAmount={currentStake}
+                stakeAmount={currentStake}
               />
             );
           })}
+        </div>
+        <div className="flex justify-between items-center px-6 py-4 rounded-lg bg-grey-50">
+          <div className="flex flex-col items-start">
+            <span className="text-base font-bold font-ui-sans">
+              {`${Number(Number(totalStaked).toFixed(2))} GTC`}
+            </span>
+            <span className="text-sm font-normal font-ui-sans">
+              Total GTC to stake
+            </span>
+          </div>
+          <Button
+            variant="primary"
+            value="Stake on selected grant(s)"
+            className="bg-purple-300 text-black"
+          />
         </div>
       </div>
     </div>
