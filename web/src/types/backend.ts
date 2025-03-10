@@ -32,6 +32,15 @@ export interface Eligibility {
   }>;
 }
 
+export interface QuadraticFundingConfig {
+  matchingCap: boolean;
+  sybilDefense: string;
+  matchingCapAmount?: number;
+  minDonationThreshold: boolean;
+  matchingFundsAvailable: number;
+  minDonationThresholdAmount?: number;
+}
+
 export interface RoundMetadata {
   name: string;
   roundType: 'public' | 'private';
@@ -41,6 +50,7 @@ export interface RoundMetadata {
     info: string;
     type: string;
   };
+  quadraticFundingConfig: QuadraticFundingConfig;
 }
 
 export interface ProjectMetadata {

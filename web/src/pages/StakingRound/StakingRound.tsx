@@ -2,69 +2,59 @@ import { StakeProjectCard } from "@gitcoin/ui/project";
 import { useCallback, useState, useMemo } from "react";
 import { Badge, Button, Icon, IconLabel, IconType, Input } from "@gitcoin/ui";
 import { DateFormat, getChainInfo } from "@gitcoin/ui/lib";
-
-const mockStakeProjectCardProps: any[] = [
-  {
-    name: "Project1",
-    image: "https://picsum.photos/200",
-    variant: "leaderboard",
-    id: "1",
-    chainId: 1,
-    roundId: "1",
-    rank: 1,
-    tokenUsdValue: 0.4,
-    totalStaked: 100,
-    numberOfContributors: 10,
-    totalDonations: 10,
-  },
-  {
-    name: "Project2",
-    image: "https://picsum.photos/201",
-    variant: "leaderboard",
-    id: "2",
-    chainId: 1,
-    roundId: "1",
-    rank: 2,
-    tokenUsdValue: 0.4,
-    totalStaked: 100,
-    numberOfContributors: 10,
-    totalDonations: 10,
-  },
-  {
-    name: "Project3",
-    image: "https://picsum.photos/202",
-    variant: "leaderboard",
-    id: "3",
-    chainId: 1,
-    roundId: "1",
-    rank: 3,
-    tokenUsdValue: 0.4,
-    totalStaked: 100,
-    numberOfContributors: 10,
-    totalDonations: 10,
-  },
-];
+import { useGetPoolSummaries } from "@/hooks/backend";
+import { useParams } from "react-router-dom";
+import { getAddress } from "viem";
 
 const userGTCBalance = 100;
 
 export const StakingRound = () => {
-  const [applicationsToStakeAmount, setApplicationsToStakeAmount] = useState<
-    Record<string, number>
-  >({});
-  const [amountToApplyToAll, setAmountToApplyToAll] = useState<number | null>(
-    null
-  );
+  const { chainId, roundId } = useParams();
+  const { data: poolSummary, isLoading } = useGetPoolSummaries(roundId ?? '', chainId ?? '');
+  const [applicationsToStakeAmount, setApplicationsToStakeAmount] = useState<Record<string, number>>({});
+  const [amountToApplyToAll, setAmountToApplyToAll] = useState<number | null>(null);
 
-  const chainInfo = getChainInfo(1);
-  const numProjects = mockStakeProjectCardProps.length;
+  // Memoize projects to use in callbacks
+  const projects = useMemo(() => {
+    if (!poolSummary || !chainId || !roundId) return [];
+    
+    return poolSummary.applications
+      .map((app) => ({
+        name: app.project.metadata.title,
+        image: 'https://d16c97c2np8a2o.cloudfront.net/ipfs/' + app.project.metadata.logoImg || "",
+        variant: "leaderboard" as const,
+        id: app.id,
+        chainId: Number(chainId),
+        roundId: roundId,
+        tokenUsdValue: 0.4, // TODO: get from backend
+        totalStaked: Number(poolSummary.totalStakesByAnchorAddress[getAddress(app.anchorAddress)] ?? 0) / 1e18,
+        numberOfContributors: app.totalDonationsCount,
+        totalDonations: app.totalAmountDonatedInUsd,
+      }))
+      .sort((a, b) => {
+        // If one has stakes and the other doesn't, the one with stakes ranks higher
+        if (a.totalStaked > 0 && b.totalStaked === 0) return -1;
+        if (b.totalStaked > 0 && a.totalStaked === 0) return 1;
+        
+        // If both have stakes, compare by stake amount
+        if (a.totalStaked !== b.totalStaked) {
+          return b.totalStaked - a.totalStaked;
+        }
+        
+        // If neither have stakes or stakes are equal, sort by contributor count
+        return b.numberOfContributors - a.numberOfContributors;
+      })
+      .map((project, index) => ({
+        ...project,
+        rank: index + 1,
+      }));
+  }, [poolSummary, chainId, roundId]);
 
-  // Derived total staked
   const totalStaked = useMemo(
-    () =>
-      Object.values(applicationsToStakeAmount).reduce(
-        (sum, amount) => sum + amount,
-        0
-      ),
+    () => Object.values(applicationsToStakeAmount).reduce(
+      (sum, amount) => sum + amount,
+      0
+    ),
     [applicationsToStakeAmount]
   );
 
@@ -78,10 +68,10 @@ export const StakingRound = () => {
   const handleApplyToAll = useCallback(() => {
     if (amountToApplyToAll === null) return;
 
-    const maxPerProject = userGTCBalance / numProjects;
+    const maxPerProject = userGTCBalance / projects.length;
     const clampedValue = Math.min(amountToApplyToAll, maxPerProject);
 
-    const newStakes = mockStakeProjectCardProps.reduce(
+    const newStakes = projects.reduce(
       (acc, project) => ({
         ...acc,
         [project.id]: clampedValue,
@@ -90,8 +80,21 @@ export const StakingRound = () => {
     );
 
     setApplicationsToStakeAmount(newStakes);
-  }, [amountToApplyToAll, numProjects]);
-  // Add this helper function at the top
+  }, [amountToApplyToAll, projects]);
+
+  if (!chainId || !roundId) {
+    return <div>Invalid params</div>;
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!poolSummary) {
+    return <div>No pool summary found</div>;
+  }
+
+  const chainInfo = getChainInfo(Number(chainId));
   const calculateMaxStake = (
     userBalance: number,
     totalStaked: number,
@@ -100,13 +103,14 @@ export const StakingRound = () => {
     const remainingBalance = userBalance - (totalStaked - currentStake);
     return Math.max(0, Math.min(remainingBalance, userBalance));
   };
+
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-col gap-2">
         {/* TODO FIX THE ROUND CARD AND THE LEADERBOARD */}
         <div className="flex justify-between">
           <div className="flex items-center gap-4">
-            <span className="text-3xl font-semibold">Round Name Here</span>
+            <span className="text-3xl font-semibold">{poolSummary.roundMetadata.name}</span>
             <Badge className="bg-blue-100">10 days left</Badge>
           </div>
           <div>
@@ -130,15 +134,14 @@ export const StakingRound = () => {
           <span>Stake period</span>
           <IconLabel
             type="period"
-            startDate={new Date()}
-            endDate={new Date(Date.now() + 1000 * 60 * 60 * 24 * 10)}
+            startDate={new Date(poolSummary.donationsStartTime)}
+            endDate={new Date(poolSummary.donationsEndTime)}
             dateFormat={DateFormat.ShortMonthDayYear24HourUTC}
             textVariant="text-base font-normal font-ui-sans leading-7 h-7 px-2 bg-grey-50 rounded"
           />
         </div>
         <div className="text-black text-base font-normal font-ui-sans leading-7">
-          Round description here, short bio letting users know the intent behind
-          the grant round.
+          {poolSummary.roundMetadata.eligibility.description}
         </div>
         <div className="flex justify-between">
           <div className="flex items-center gap-2 text-3xl font-semibold">
@@ -148,7 +151,7 @@ export const StakingRound = () => {
             <Input
               type="number"
               min={0}
-              max={userGTCBalance / mockStakeProjectCardProps.length}
+              max={userGTCBalance / projects.length}
               value={amountToApplyToAll || ""}
               placeholder="Amount (GTC)"
               onChange={(e) => setAmountToApplyToAll(Number(e.target.value))}
@@ -166,7 +169,7 @@ export const StakingRound = () => {
           </div>
         </div>
         <div className="flex flex-col gap-4">
-          {mockStakeProjectCardProps.map((props) => {
+          {projects.map((props) => {
             const currentStake = applicationsToStakeAmount[props.id] || 0;
             const maxStake = calculateMaxStake(
               userGTCBalance,
