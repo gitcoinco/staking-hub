@@ -1,6 +1,6 @@
 import { Button } from "@gitcoin/ui";
 import { cn } from "@gitcoin/ui/lib";
-import { StakeProjectCard, StakeProjectCardProps } from "@gitcoin/ui/project";
+import { StakeProjectCardProps } from "@gitcoin/ui/project";
 
 import { StakePoolCard } from "@gitcoin/ui/pool";
 
@@ -11,7 +11,9 @@ const simpleRound = {
   chainId: 10,
   votingStartDate: new Date("2024-12-09T19:22:56.413Z"),
   votingEndDate: new Date("2024-12-10T19:23:30.678Z"),
-  onClick: (pool?: { chainId: number; roundId: string }) => void 0,
+  onClick: (pool?: { chainId: number; roundId: string }) => {
+    console.log(pool);
+  },
   createdAtBlock: 123456,
   matchingPoolAmount: 100000,
   stakedAmount: 100000,
