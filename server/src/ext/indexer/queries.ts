@@ -24,7 +24,7 @@ export const getRoundsWithApplications = gql`
       roundMetadataCid
       donationsStartTime
       donationsEndTime
-      applications {
+      applications(filter: { status: { equalTo: APPROVED } }) {
         id
         anchorAddress
         metadata
@@ -51,7 +51,7 @@ export const getRoundsWithApplicationsStatus = gql`
       roundMetadataCid
       donationsStartTime
       donationsEndTime
-      applications {
+      applications(filter: { status: { equalTo: APPROVED } }) {
         status
       }
     }
@@ -69,7 +69,7 @@ export const getRoundWithApplications = gql`
       roundMetadataCid
       donationsStartTime
       donationsEndTime
-      applications {
+      applications(filter: { status: { equalTo: APPROVED } }) {
         id
         metadata
         metadataCid
