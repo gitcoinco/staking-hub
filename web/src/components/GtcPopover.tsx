@@ -11,6 +11,7 @@ import { useDisconnect } from "wagmi";
 import { useBalance } from "wagmi";
 import { getChainInfo } from "@gitcoin/ui/lib";
 import { useClickOutside } from "@gitcoin/ui/hooks/useClickOutside";
+import { getChainById } from "@gitcoin/gitcoin-chain-data";
 
 export const GtcPopover = () => {
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -20,11 +21,15 @@ export const GtcPopover = () => {
   });
   const [isOpen, setIsOpen] = useState(false);
   const { address, chainId } = useAccount();
+
+  const gtcToken = getChainById(chainId ?? 1).tokens.find( (t) => t.code.toLowerCase() == "gtc" );
+
   const { data: balance } = useBalance({
     address,
-    token: "0x7f9a7DB853Ca816B9A138AEe3380Ef34c437dEe0",
+    token: gtcToken?.address,
     chainId,
   });
+  
   const { disconnect } = useDisconnect();
   const gtcAmount = Number(Number(balance?.formatted ?? 0).toFixed(2));
   const chainInfo = getChainInfo(chainId ?? 1);

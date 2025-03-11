@@ -8,7 +8,7 @@ const chainData = getChains();
 const { alchemyId, infuraId, isDevelopment, availableNetworks } = {
   alchemyId: import.meta.env.VITE_ALCHEMY_ID,
   infuraId: import.meta.env.VITE_INFURA_ID,
-  isDevelopment: import.meta.env.VITE_ENV === "devlopment",
+  isDevelopment: import.meta.env.VITE_MODE === "development",
   availableNetworks: [chains.sepolia.id, chains.arbitrum.id],
 };
 
@@ -50,23 +50,31 @@ interface ChainConfig {
 const appendProviderKey = (
   url: string,
   provider: "alchemy" | "infura"
-): string => {
+): string | undefined => {
   const envKey = provider === "alchemy" ? alchemyId : infuraId;
-
-  return envKey ? url + envKey : url;
+  
+  // Return undefined if no key is available
+  if (!envKey) return undefined;
+  return url + envKey;
 };
 
 export const getRpcUrl = (chain: TChain): string => {
   const baseUrl = rpcUrls[chain.id] ?? chain.rpc;
 
+  // If it's an Alchemy URL and we have an Alchemy key
   if (baseUrl.includes("alchemy")) {
-    return appendProviderKey(baseUrl, "alchemy");
+    const alchemyUrl = appendProviderKey(baseUrl, "alchemy");
+    if (alchemyUrl) return alchemyUrl;
   }
+  
+  // If it's an Infura URL and we have an Infura key
   if (baseUrl.includes("infura")) {
-    return appendProviderKey(baseUrl, "infura");
+    const infuraUrl = appendProviderKey(baseUrl, "infura");
+    if (infuraUrl) return infuraUrl;
   }
 
-  return baseUrl;
+  // Fallback to the default RPC if no provider key is available
+  return chain.rpc;
 };
 
 export function stringToBlobUrl(data: string): string {
