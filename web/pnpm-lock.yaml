@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@gitcoin/gitcoin-chain-data':
-        specifier: ^1.0.44
-        version: 1.0.52(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.24.2)
+        specifier: ^1.0.54
+        version: 1.0.54(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.24.2)
       '@gitcoin/ui':
         specifier: 0.0.0-beta.24
         version: 0.0.0-beta.24(@storybook/addons@7.6.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(bufferutil@4.0.9)(graphql@16.10.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.34.8)(storybook@8.6.4(bufferutil@4.0.9)(prettier@3.5.2)(utf-8-validate@5.0.10))(tailwindcss@3.4.17)(typescript@5.5.4)(utf-8-validate@5.0.10)(vite@6.1.1(@types/node@22.13.5)(jiti@1.21.7)(yaml@2.7.0))
@@ -443,8 +443,8 @@ packages:
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
 
-  '@gitcoin/gitcoin-chain-data@1.0.52':
-    resolution: {integrity: sha512-29G8kyyESp1myUsQs0OuTuJPGhfetA8aAkfqVsOxBDS7qBiTbCMfFwDLyAsXTRmd7cDx22sU1O9tzzLdDOdzsQ==}
+  '@gitcoin/gitcoin-chain-data@1.0.54':
+    resolution: {integrity: sha512-O1ZBJ5O0JZfDP87rJ1vUT29Wiu+WtvBe8rKb8XuqFPq0l/jpM28d1dSvmMzI0uUCtXRc8HqSZlB3ppHtEcgf/w==}
     engines: {node: '>=16.15.0', npm: '>=8.5.5'}
     peerDependencies:
       typescript: ^5.0.0
@@ -5409,7 +5409,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.9': {}
 
-  '@gitcoin/gitcoin-chain-data@1.0.52(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.24.2)':
+  '@gitcoin/gitcoin-chain-data@1.0.54(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.24.2)':
     dependencies:
       typescript: 5.5.4
       viem: 2.21.60(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.24.2)
@@ -5420,7 +5420,7 @@ snapshots:
 
   '@gitcoin/ui@0.0.0-beta.24(@storybook/addons@7.6.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(bufferutil@4.0.9)(graphql@16.10.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.34.8)(storybook@8.6.4(bufferutil@4.0.9)(prettier@3.5.2)(utf-8-validate@5.0.10))(tailwindcss@3.4.17)(typescript@5.5.4)(utf-8-validate@5.0.10)(vite@6.1.1(@types/node@22.13.5)(jiti@1.21.7)(yaml@2.7.0))':
     dependencies:
-      '@gitcoin/gitcoin-chain-data': 1.0.52(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.24.2)
+      '@gitcoin/gitcoin-chain-data': 1.0.54(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.24.2)
       '@heroicons/react': 1.0.6(react@18.3.1)
       '@hookform/resolvers': 3.10.0(react-hook-form@7.54.2(react@18.3.1))
       '@radix-ui/react-accordion': 1.2.3(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
