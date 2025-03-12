@@ -9,7 +9,6 @@ import type {
   Stake,
   RoundMatchingDistributions,
   PoolOverview,
-  RoundWithApplicationsStatusQueryResponse,
   UnStake,
   Claim,
   PoolStakesQueryResponse,
@@ -20,7 +19,6 @@ import {
   getRoundMatchingDistributions,
   getRounds,
   getPoolStakes,
-  getRoundsWithApplicationsStatus,
   getPoolStakesAndClaimsByStaker,
 } from './queries';
 import type { Logger } from 'winston';
@@ -84,7 +82,9 @@ class IndexerClient {
     });
 
     if (response === null) {
-      throw new NotFoundError(`No round found for roundId: ${roundId} on chainId: ${chainId}`);
+      throw new NotFoundError(
+        `No round found for roundId: ${roundId} on chainId: ${chainId}`
+      );
     }
 
     return response[0];
@@ -123,7 +123,7 @@ class IndexerClient {
       const rounds = response.rounds;
 
       this.logger.info(
-        `Successfully fetched rounds with IDs: ${rounds.map((round) => round.id).join(', ')}, which includes ${rounds.map((round) => round.applications.length).join(', ')} applications`
+        `Successfully fetched rounds with IDs: ${rounds.map(round => round.id).join(', ')}, which includes ${rounds.map(round => round.applications.length).join(', ')} applications`
       );
       return rounds;
     } catch (error) {
@@ -144,9 +144,9 @@ class IndexerClient {
   }): Promise<PoolOverview[]> {
     const requestVariables = { chainId, roundIds };
     try {
-      const response: RoundWithApplicationsStatusQueryResponse = await request(
+      const response: RoundApplicationsQueryResponse = await request(
         this.indexerEndpoint,
-        getRoundsWithApplicationsStatus,
+        getRoundsWithApplications,
         requestVariables
       );
 
@@ -160,7 +160,10 @@ class IndexerClient {
           poolId: Number(round.id),
         });
 
-        const totalStaked = stakes.reduce((acc, stake) => acc + Number(stake.amount), 0);
+        const totalStaked = stakes.reduce(
+          (acc, stake) => acc + Number(stake.amount),
+          0
+        );
 
         poolOverview.push({
           chainId,
@@ -170,14 +173,17 @@ class IndexerClient {
           donationsStartTime: round.donationsStartTime,
           donationsEndTime: round.donationsEndTime,
           totalStaked,
-          approvedProjectCount: round.applications.filter((application) => application.status === "APPROVED").length,
+          approvedProjectCount: round.applications.length,
+          applications: round.applications,
         });
-
       }
 
       return poolOverview;
     } catch (error) {
-      this.logger.error(`Failed to fetch round with applications count: ${error.message}`, { error });
+      this.logger.error(
+        `Failed to fetch round with applications count: ${error.message}`,
+        { error }
+      );
       throw error;
     }
   }
@@ -202,7 +208,9 @@ class IndexerClient {
         this.logger.warn(
           `No round found for roundId: ${roundId} on chainId: ${chainId}`
         );
-        throw new NotFoundError(`No round found for roundId: ${roundId} on chainId: ${chainId}`);
+        throw new NotFoundError(
+          `No round found for roundId: ${roundId} on chainId: ${chainId}`
+        );
       }
       return response.rounds[0];
     } catch (error) {
@@ -255,16 +263,18 @@ class IndexerClient {
 
       return response.TokenLock_Locked;
     } catch (error) {
-      this.logger.error(`Failed to fetch pool stakes: ${error.message}`, { error });
+      this.logger.error(`Failed to fetch pool stakes: ${error.message}`, {
+        error,
+      });
       throw error;
     }
   }
 
   async getPoolStakesAndClaimsByStaker({
-    staker
+    staker,
   }: {
     staker: string;
-  }): Promise<{ staked: Stake[], unstaked: UnStake[], claims: Claim[] }> {
+  }): Promise<{ staked: Stake[]; unstaked: UnStake[]; claims: Claim[] }> {
     const requestVariables = { staker };
     try {
       const response: PoolStakesAndClaimsQueryResponse = await request(
@@ -279,12 +289,12 @@ class IndexerClient {
         claims: response.MerkleAirdrop_Claim,
       };
     } catch (error) {
-      this.logger.error(`Failed to fetch pool stakes: ${error.message}`, { error });
+      this.logger.error(`Failed to fetch pool stakes: ${error.message}`, {
+        error,
+      });
       throw error;
     }
   }
-
 }
-
 
 export const indexerClient = IndexerClient.getInstance();
