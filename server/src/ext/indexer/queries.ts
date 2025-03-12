@@ -15,9 +15,7 @@ export const getRounds = gql`
 
 export const getRoundsWithApplications = gql`
   query RoundsApplications($chainId: Int!, $roundIds: [String!]!) {
-    rounds(
-      filter: { chainId: { equalTo: $chainId }, id: { in: $roundIds } }
-    ) {
+    rounds(filter: { chainId: { equalTo: $chainId }, id: { in: $roundIds } }) {
       chainId
       id
       roundMetadata
@@ -52,7 +50,18 @@ export const getRoundsWithApplicationsStatus = gql`
       donationsStartTime
       donationsEndTime
       applications(filter: { status: { equalTo: APPROVED } }) {
+        id
+        anchorAddress
+        metadata
+        metadataCid
         status
+        projectId
+        totalDonationsCount
+        totalAmountDonatedInUsd
+        project: canonicalProject {
+          metadata
+          metadataCid
+        }
       }
     }
   }
@@ -103,10 +112,7 @@ export const getApplicationWithRound = gql`
 export const getRoundMatchingDistributions = gql`
   query RoundMatchingDistributions($chainId: Int!, $roundId: String!) {
     rounds(
-      filter: {
-        chainId: { equalTo: $chainId }
-        id: { equalTo: $roundId }
-      }
+      filter: { chainId: { equalTo: $chainId }, id: { equalTo: $roundId } }
     ) {
       matchAmount
       donationsEndTime
@@ -119,7 +125,7 @@ export const getPoolStakes = gql`
   query PoolStakes($chainId: numeric!, $poolId: numeric!) {
     TokenLock_Locked(
       where: { chainId: { _eq: $chainId }, poolId: { _eq: $poolId } }
-      order_by: {amount: desc}
+      order_by: { amount: desc }
     ) {
       chainId
       amount
@@ -135,7 +141,7 @@ export const getPoolStakesAndClaimsByStaker = gql`
   query PoolStakesAndClaimsByStaker($staker: String!) {
     TokenLock_Locked(
       where: { sender: { _eq: $staker } }
-      order_by: {amount: desc}
+      order_by: { amount: desc }
     ) {
       chainId
       amount
@@ -145,16 +151,12 @@ export const getPoolStakesAndClaimsByStaker = gql`
       blockTimestamp
     }
 
-    TokenLock_Claimed(
-      where: { owner: { _eq: $staker } }
-    ) {
+    TokenLock_Claimed(where: { owner: { _eq: $staker } }) {
       owner
       amount
     }
 
-    MerkleAirdrop_Claim(
-      where: { claimant: { _eq: $staker } }
-    ) {
+    MerkleAirdrop_Claim(where: { claimant: { _eq: $staker } }) {
       chainId
       poolId
       amount
