@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "dependencies": {
+    "@0xsquid/widget": "^4.2.8",
     "@gitcoin/gitcoin-chain-data": "^1.0.54",
     "@gitcoin/ui": "0.0.0-beta.24",
     "@rainbow-me/rainbowkit": "^2.2.0",
