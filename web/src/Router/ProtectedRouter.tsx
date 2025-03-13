@@ -2,6 +2,7 @@ import React, { PropsWithChildren } from "react";
 import { Outlet } from "react-router";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
+import { LoadingPage } from "@/components/Loading";
 
 interface RouteProps {
   fallback: React.FC<PropsWithChildren<any>>;
@@ -14,7 +15,7 @@ export const ProtectedRouter = ({ fallback: Fallback }: RouteProps) => {
   const isLoading = isConnecting;
 
   if (isLoading) {
-    return <Fallback isLoading={true} />;
+    return <LoadingPage />;
   }
 
   if (!isConnected) {

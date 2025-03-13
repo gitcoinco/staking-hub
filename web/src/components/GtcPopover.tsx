@@ -1,51 +1,45 @@
 "use client";
 
+import { useRef, useState, useContext } from "react";
 import { IconType } from "@gitcoin/ui";
-
 import { Button } from "@gitcoin/ui";
-
 import { Icon } from "@gitcoin/ui";
-import { useRef, useState } from "react";
-import { useAccount } from "wagmi";
-import { useDisconnect } from "wagmi";
-import { useBalance } from "wagmi";
-import { getChainInfo } from "@gitcoin/ui/lib";
 import { useClickOutside } from "@gitcoin/ui/hooks/useClickOutside";
-import { getChainById } from "@gitcoin/gitcoin-chain-data";
+import { getChainInfo } from "@gitcoin/ui/lib";
+import { useDisconnect } from "wagmi";
+import { useGTC } from "@/hooks/useGTC";
+import { SquidContext } from "@/providers/SquidProvider";
 
 export const GtcPopover = () => {
   const popoverRef = useRef<HTMLDivElement>(null);
-
+  const { setIsSquidOpen } = useContext(SquidContext);
   useClickOutside(popoverRef, () => {
     if (isOpen) setIsOpen(false);
   });
   const [isOpen, setIsOpen] = useState(false);
-  const { address, chainId } = useAccount();
 
-  const gtcToken = getChainById(chainId ?? 1).tokens.find( (t) => t.code.toLowerCase() == "gtc" );
+  const { chainId, ...balance } = useGTC();
 
-  const { data: balance } = useBalance({
-    address,
-    token: gtcToken?.address,
-    chainId,
-  });
-  
   const { disconnect } = useDisconnect();
-  const gtcAmount = Number(Number(balance?.formatted ?? 0).toFixed(2));
+  const gtcAmount = Number(Number(balance?.formatted).toFixed(2));
   const chainInfo = getChainInfo(chainId ?? 1);
+
+  const handleGetGTC = () => {
+    setIsSquidOpen(true);
+    setIsOpen(false);
+  };
+
   return (
     <div className="relative" ref={popoverRef}>
       <div className="flex items-center justify-center gap-2">
         <div
-          className="flex items-center gap-2 cursor-pointer bg-green-50 rounded-3xl px-2 py-1 h-10 shadow-md"
+          className="flex h-10 cursor-pointer items-center gap-2 rounded-3xl bg-green-50 px-2 py-1 shadow-md"
           onClick={() => setIsOpen(!isOpen)}
         >
-          <div className="p-1.5 rounded-full bg-green-100">
+          <div className="rounded-full bg-green-100 p-1.5">
             <Icon type={IconType.GITCOIN} className="size-4" />
           </div>
-          <span className="font-normal text-sm font-ui-mono shrink-0">
-            {gtcAmount} GTC
-          </span>
+          <span className="font-ui-mono shrink-0 text-sm font-normal">{gtcAmount} GTC</span>
           <Icon
             type={IconType.CHEVRON_DOWN}
             className={`${isOpen && "rotate-180"} transition-transform duration-200`}
@@ -54,45 +48,40 @@ export const GtcPopover = () => {
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 top-full origin-top-right px-4 py-3 mt-2.5 bg-white z-50 rounded-b-2xl shadow-[0px_9px_24px_0px_rgba(0,0,0,0.20)] border-x border-b border-grey-100 ">
-          <div className="bg-gray-100 px-4 py-2 w-full">
-            <div className="flex justify-start items-center gap-4 w-[225px]">
+        <div className="border-grey-100 absolute left-0 top-full z-50 mt-2.5 origin-top-right rounded-b-2xl border-x border-b bg-white px-4 py-3 shadow-[0px_9px_24px_0px_rgba(0,0,0,0.20)]">
+          <div className="w-full bg-gray-100 px-4 py-2">
+            <div className="flex w-[225px] items-center justify-start gap-4">
               <Icon type={chainInfo.icon} className="size-8" />
               <div className="">
-                <div className="text-lg font-medium leading-7 font-ui-sans">
-                  {chainInfo.name}
-                </div>
+                <div className="font-ui-sans text-lg font-medium leading-7">{chainInfo.name}</div>
                 <div className="flex items-center gap-2">
-                  <span className="font-normal text-sm font-ui-mono">
-                    Balance
-                  </span>
-                  <span className="font-normal text-sm font-ui-mono shrink-0">
-                    {gtcAmount} GTC
-                  </span>
+                  <span className="font-ui-mono text-sm font-normal">Balance</span>
+                  <span className="font-ui-mono shrink-0 text-sm font-normal">{gtcAmount} GTC</span>
                 </div>
               </div>
             </div>
           </div>
-          <div className=" py-2">
+          <div className="py-2">
             <Button
               variant="secondary"
               value="Get GTC"
               icon={<Icon type={IconType.ARROW_RIGHT} />}
               iconPosition="right"
               className="w-full bg-blue-100"
+              onClick={handleGetGTC}
             />
           </div>
-          <div className="border-t border-grey-100 w-full" />
-          <div className="flex gap-2 items-center px-1 pt-3 shadow-b-lg ">
+          <div className="border-grey-100 w-full border-t" />
+          <div className="shadow-b-lg flex items-center gap-2 px-1 pt-3">
             <div
-              className="flex justify-start gap-2 cursor-pointer"
+              className="flex cursor-pointer justify-start gap-2"
               onClick={() => {
                 disconnect();
                 setIsOpen(false);
               }}
             >
               <Icon type={IconType.LOGOUT} />
-              <div className="text-sm font-medium font-ui-mono">Disconnect</div>
+              <div className="font-ui-mono text-sm font-medium">Disconnect</div>
             </div>
           </div>
         </div>
