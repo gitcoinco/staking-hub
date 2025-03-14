@@ -17,14 +17,7 @@ contract DeployMerkleAirdrop is Script {
         uint256 chainId = 11155111;
         uint256 poolId = 706;
 
-        MerkleAirdrop airdrop = new MerkleAirdrop(
-            matchingPool,
-            sender,
-            IERC20(token),
-            merkleRoot,
-            chainId,
-            poolId
-        );
+        MerkleAirdrop airdrop = new MerkleAirdrop(matchingPool, sender, IERC20(token), merkleRoot, chainId, poolId);
         vm.stopBroadcast();
 
         return airdrop;
