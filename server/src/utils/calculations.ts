@@ -1,11 +1,10 @@
-import type {
-  RewardCalculation,
-  CalculatedReward,
-  MerkleData,
-} from '@/types';
+import type { RewardCalculation, CalculatedReward, MerkleData } from '@/types';
 import { keccak256, encodePacked, type Hex } from 'viem';
 import { MerkleTree } from 'merkletreejs';
-import { type MatchingDistributionWithAnchorAddress, type Stake } from '@/ext/indexer';
+import {
+  type MatchingDistributionWithAnchorAddress,
+  type Stake,
+} from '@/ext/indexer';
 
 export function calculateRewards(
   totalRewardPool: bigint,
@@ -15,7 +14,9 @@ export function calculateRewards(
   stakes: Stake[]
 ): RewardCalculation[] {
   // Get set of projects that have stakes
-  const projectsWithStakes = new Set(stakes.map(s => s.recipient.toLowerCase()));
+  const projectsWithStakes = new Set(
+    stakes.map(s => s.recipient.toLowerCase())
+  );
 
   // Calculate total match amount for ONLY projects with stakes
   const stakedProjectsMatchAmount = matchingDistribution
@@ -35,8 +36,10 @@ export function calculateRewards(
     const projectId = stake.recipient.toLowerCase();
     const userId = stake.sender.toLowerCase();
 
-    projectWeights[projectId] = (projectWeights[projectId] ?? BigInt(0)) + stakeWeight;
-    userWeights[`${userId}:${projectId}`] = (userWeights[`${userId}:${projectId}`] ?? BigInt(0)) + stakeWeight;
+    projectWeights[projectId] =
+      (projectWeights[projectId] ?? BigInt(0)) + stakeWeight;
+    userWeights[`${userId}:${projectId}`] =
+      (userWeights[`${userId}:${projectId}`] ?? BigInt(0)) + stakeWeight;
   }
 
   // Step 2: Calculate and distribute rewards
@@ -44,20 +47,24 @@ export function calculateRewards(
   let totalDistributed = BigInt(0);
 
   for (const projectId of Object.keys(projectWeights)) {
-    const project = matchingDistribution.find(p => p.anchorAddress.toLowerCase() === projectId);
+    const project = matchingDistribution.find(
+      p => p.anchorAddress.toLowerCase() === projectId
+    );
     if (project === null || project === undefined) continue;
 
     const matchAmount = BigInt(project.matchAmountInToken);
-    const projectReward = (matchAmount * totalRewardPool) / stakedProjectsMatchAmount;
+    const projectReward =
+      (matchAmount * totalRewardPool) / stakedProjectsMatchAmount;
     const totalProjectWeight = projectWeights[projectId];
-    
-    if (totalProjectWeight > 0) {
+
+    if (totalProjectWeight !== BigInt(0)) {
       for (const [key, userWeight] of Object.entries(userWeights)) {
         const [userIdKey, projectIdKey] = key.split(':');
-    
+
         if (projectIdKey !== '' && projectIdKey === projectId) {
           const userReward = (userWeight * projectReward) / totalProjectWeight;
-          userRewards[userIdKey] = (userRewards[userIdKey] ?? BigInt(0)) + userReward;
+          userRewards[userIdKey] =
+            (userRewards[userIdKey] ?? BigInt(0)) + userReward;
           totalDistributed += userReward;
         }
       }
