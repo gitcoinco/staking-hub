@@ -25,6 +25,7 @@ networks:
       - name: TokenLock
         address:
           - 0x9324bC7A3aDFC19A40E790eCeFf9e46009df5587
+          - 0x006384dE9D80C04bF908495676C507EFfF5C7AD2
       - name: MerkleAirdrop
         address:
           - 0xc234225833d40C3248ca672F7eFDF071B33A3870
