@@ -1,9 +1,9 @@
 export type Address = `0x${string}`;
 
 export enum Status {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
 }
 
 export interface ApplicationMetadata {
@@ -43,7 +43,7 @@ export interface QuadraticFundingConfig {
 
 export interface RoundMetadata {
   name: string;
-  roundType: 'public' | 'private';
+  roundType: "public" | "private";
   eligibility: Eligibility;
   programContractAddress: string;
   support?: {
@@ -90,6 +90,7 @@ export interface Round {
   roundMetadataCid: string;
   donationsStartTime: string;
   donationsEndTime: string;
+  matchTokenAddress: string;
 }
 
 export interface RoundWithApplications extends Round {
@@ -173,16 +174,27 @@ export interface RewardWithoutProof {
   amount: string;
 }
 
+export interface Reward {
+  staker: string;
+  amount: string;
+  proof: `0x${string}`[];
+  chainId: number;
+  poolId: string;
+  merkleAirdropAddress?: string;
+}
+
 export interface PoolOverview extends Round {
   totalStaked: number;
   approvedProjectCount: number;
+  applications: Application[];
+  isClaimable: boolean;
 }
 
 export interface StakerOverview {
   currentlyStaked: number;
   poolsOverview: PoolOverview[];
   stakes: Stake[];
-  rewards: RewardWithoutProof[];
+  rewards: Reward[];
   claims: Claim[];
 }
 

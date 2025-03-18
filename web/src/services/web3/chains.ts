@@ -2,7 +2,7 @@ import { getChains, TChain } from "@gitcoin/gitcoin-chain-data";
 import { Chain } from "@rainbow-me/rainbowkit";
 import { zeroAddress } from "viem";
 import * as chains from "viem/chains";
-import { getStakingContractByChainId } from "./stakingConfig";
+import { getStakingContractsByChainId } from "./stakingConfig";
 
 const chainData = getChains();
 
@@ -131,7 +131,7 @@ const filterChainsByAvailability = (
   chains: TChain[],
   availableNetworks: number[]
 ): TChain[] => {
-  return chains.filter((chain) => availableNetworks.includes(chain.id) && getStakingContractByChainId(chain.id) !== undefined);
+  return chains.filter((chain) => availableNetworks.includes(chain.id) && getStakingContractsByChainId(chain.id) !== undefined);
 };
 
 export const getTargetNetworks = (config: ChainConfig): [Chain, ...Chain[]] => {
