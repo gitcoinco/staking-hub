@@ -13,5 +13,6 @@ export const useGetPoolSummaries = (alloPoolId: string, chainId: string) => {
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
+    refetch: query.refetch,
   };
 }

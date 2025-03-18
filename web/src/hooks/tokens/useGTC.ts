@@ -1,14 +1,11 @@
-import { getChainById } from "@gitcoin/gitcoin-chain-data";
 import { useAccount, useBalance } from "wagmi";
 import { useTokenPrice } from "@/hooks/tokens/useTokenPrice";
+import { getStakingContractsByChainId } from "@/services/web3/stakingConfig";
 
 export const useGTC = () => {
   const { address, chainId } = useAccount();
 
-  const gtcToken = getChainById(chainId ?? 1).tokens.find((t) => t.code.toLowerCase() == "gtc");
-
-  const tokenAddress =
-    chainId === 11155111 ? "0x5e7C95EaF08D6FeD05a8E4BC607Fb682834C74cE" : gtcToken?.address;
+  const tokenAddress = getStakingContractsByChainId(chainId ?? 1)?.gtcToken;
 
   const { data: balance } = useBalance({
     address,
@@ -16,7 +13,8 @@ export const useGTC = () => {
     chainId,
   });
 
-  const { data: price } = useTokenPrice("GTC");
+  const gtcRedstoneId = "GTC";
+  const { data: price } = useTokenPrice(gtcRedstoneId);
 
   if (!tokenAddress) {
     return {

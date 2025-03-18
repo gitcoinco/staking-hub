@@ -1,22 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useToast } from "@gitcoin/ui/hooks/useToast";
 import { ProgressStatus, Step } from "@gitcoin/ui/types";
-import { encodeFunctionData } from "viem";
+import { Address, encodeFunctionData } from "viem";
 import { erc20Abi } from "viem";
-import { useContractInteraction } from "../useContractInteraction";
+import { useContractInteraction, ContractOperation } from "@/hooks";
+import { getStakingContractsByChainId } from "@/services/web3/stakingConfig";
 import { abi } from "./abi";
-
-// Dummy addresses for now
-const TOKEN_ADDRESS = "0x5e7C95EaF08D6FeD05a8E4BC607Fb682834C74cE" as const;
-const LOCK_CONTRACT_ADDRESS = "0x9324bC7A3aDFC19A40E790eCeFf9e46009df5587" as const;
-
-export interface ContractOperation {
-  type: "transaction" | "signing" | "approval";
-  order: number; // Order in which the operation should be executed
-  metadata: {
-    name: string;
-    description: string;
-  };
-}
 
 // Define the progress steps
 const getLockProgressSteps = ({
@@ -45,12 +34,12 @@ const getLockProgressSteps = ({
     ...operationSteps,
     {
       name: "Indexing",
-      description: "Syncing with the blockchain...",
+      description: "Your stake is being registered on the blockchain.",
       status: indexingStatus,
     },
     {
-      name: "Finishing",
-      description: "Completing the lock process...",
+      name: "Finishing up",
+      description: "We’re wrapping up.",
       status: finishingStatus,
     },
   ];
@@ -59,7 +48,24 @@ const getLockProgressSteps = ({
 export const useLock = () => {
   const { steps, contractInteractionMutation } = useContractInteraction();
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
+  useEffect(() => {
+    if (contractInteractionMutation.isSuccess) {
+      toast({
+        title: "Tokens locked",
+        description: "Your tokens have been locked",
+        status: "success",
+      });
+    }
+    if (contractInteractionMutation.isError) {
+      toast({
+        title: "Error locking tokens",
+        description: "Your tokens have not been locked",
+        status: "error",
+      });
+    }
+  }, [contractInteractionMutation.isSuccess, contractInteractionMutation.isError]);
   const lock = async ({
     chainId,
     amounts,
@@ -69,12 +75,18 @@ export const useLock = () => {
   }: {
     chainId: number;
     amounts: bigint[];
-    recipientIds: `0x${string}`[];
+    recipientIds: Address[];
     chainIds?: bigint[];
     poolIds?: bigint[];
   }) => {
+    const stakingContracts = getStakingContractsByChainId(chainId);
+    const tokenLockAddress = stakingContracts?.tokenLock;
+    const gtcTokenAddress = stakingContracts?.gtcToken;
     setIsLoading(true);
 
+    if (!tokenLockAddress || !gtcTokenAddress) {
+      throw new Error("Staking contracts not found");
+    }
     try {
       // Convert amount to wei (assuming 18 decimals)
       const amountInWei = amounts.reduce((acc, amount) => acc + amount, BigInt(0));
@@ -83,7 +95,7 @@ export const useLock = () => {
       const approveData = encodeFunctionData({
         abi: erc20Abi,
         functionName: "approve",
-        args: [LOCK_CONTRACT_ADDRESS, amountInWei],
+        args: [tokenLockAddress, amountInWei],
       });
 
       const lockData = encodeFunctionData({
@@ -97,16 +109,22 @@ export const useLock = () => {
         ],
       });
 
+      const recipientsLength = recipientIds.length;
+
+      const lockTokensDescription = `Your GTC is being staked across ${recipientsLength} ${
+        recipientsLength === 1 ? "project" : "projects"
+      }`;
+
       await contractInteractionMutation.mutateAsync({
         chainId,
         transactionsData: async () => [
           {
-            to: TOKEN_ADDRESS,
+            to: gtcTokenAddress,
             data: approveData,
             value: "0",
           },
           {
-            to: LOCK_CONTRACT_ADDRESS,
+            to: tokenLockAddress,
             data: lockData,
             value: "0",
           },
@@ -117,16 +135,16 @@ export const useLock = () => {
             type: "transaction",
             order: 1,
             metadata: {
-              name: "Approve Tokens",
-              description: "Approving tokens for stacking",
+              name: "Approving tokens",
+              description: "Your wallet is approving GTC for staking.",
             },
           },
           {
             type: "transaction",
             order: 2,
             metadata: {
-              name: "Lock Tokens",
-              description: `Staking tokens for ${recipientIds.length} recipients in ${chainIds.length} chains and ${poolIds.length} pools`,
+              name: "Locking tokens",
+              description: lockTokensDescription,
             },
           },
         ],

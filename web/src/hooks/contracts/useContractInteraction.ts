@@ -4,6 +4,7 @@ import { ProgressStatus, Step } from "@gitcoin/ui/types";
 import { useMutation } from "@tanstack/react-query";
 import { createPublicClient, http, TransactionReceipt } from "viem";
 import { useWalletClient } from "wagmi";
+import { waitUntilIndexerSynced } from "@/services/indexer/waitUntilIndexerSynced";
 import { targetNetworks } from "@/services/web3/chains";
 
 // Define operation with order
@@ -151,7 +152,7 @@ export const useContractInteraction = () => {
 
             receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
 
-            if (!receipt.status) {
+            if (!receipt.status || receipt.status === "reverted") {
               setContractOperationStatuses((prev) => {
                 const newStatuses = [...prev];
                 newStatuses[opIndex] = ProgressStatus.IS_ERROR;
@@ -195,9 +196,14 @@ export const useContractInteraction = () => {
         setIndexingStatus(ProgressStatus.IN_PROGRESS);
 
         try {
-          // TODO: Implement waitUntilIndexerSynced
-          // For now wait for 10 seconds
-          await new Promise((resolve) => setTimeout(resolve, 10000));
+          if (receipt) {
+            await waitUntilIndexerSynced({
+              chainId,
+              blockNumber: receipt.blockNumber,
+            });
+          } else {
+            await new Promise((resolve) => setTimeout(resolve, 10000));
+          }
 
           if (postIndexerHook && receipt) {
             await postIndexerHook(receipt);
