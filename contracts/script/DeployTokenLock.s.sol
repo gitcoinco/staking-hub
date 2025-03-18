@@ -11,7 +11,7 @@ contract DeployTokenLock is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Token and unlock date only (removed EAS-related params)
-        ERC20 token = ERC20(0x769E088b0165BA73D26E0642E26e2C969C24B1e3);
+        ERC20 token = ERC20(0x5e7C95EaF08D6FeD05a8E4BC607Fb682834C74cE);
         uint256 unlockDate = 1742338800;
 
         // Setup unlock schedule
