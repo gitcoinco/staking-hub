@@ -56,9 +56,9 @@ export const calculate = async (
 
     const totalMatchAmount = roundCalculationInfo.matchAmount;
     const matchingDistribution = roundCalculationInfo.matchingDistribution.matchingDistribution;
-    // todo: change the date string to the actual end time: matchingDistribution.donationsEndTime
-    const totalDuration = BigInt(new Date("Mar-05-2025 08:39:24 AM UTC").getTime() / 1000);
-    
+    const totalDuration = BigInt(
+      new Date(roundCalculationInfo.donationsEndTime).getTime() / 1000
+    );
     const [errorFetchingStakes, stakes] = await catchError(
       indexerClient.getPoolStakes({
         chainId,

@@ -80,6 +80,7 @@ export interface Round {
   roundMetadataCid: string;
   donationsStartTime: string;
   donationsEndTime: string;
+  matchTokenAddress: string;
 }
 
 export interface RoundWithApplications extends Round {
@@ -170,21 +171,29 @@ export interface RoundWithStakes extends RoundWithApplications {
   totalStakesByAnchorAddress: Record<string, string>;
 }
 
-export interface RewardWithoutProof {
+export interface Reward {
   staker: string;
   amount: string;
+  proof?: string[];
+  merkleAirdropAddress?: string;
+}
+
+export interface RewardWithChainIdAndPoolId extends Reward {
+  chainId: number;
+  poolId: string;
 }
 
 export interface PoolOverview extends Round {
   totalStaked: number;
   approvedProjectCount: number;
   applications: Application[];
+  isClaimable: boolean;
 }
 export interface StakerOverview {
   currentlyStaked: number;
   poolsOverview: PoolOverview[];
   stakes: Stake[];
-  rewards: RewardWithoutProof[];
+  rewards: Reward[];
   claims: Claim[];
 }
 
