@@ -1,18 +1,18 @@
 "use client";
 
-import { useRef, useState, useContext } from "react";
+import { useRef, useState } from "react";
 import { IconType } from "@gitcoin/ui";
 import { Button } from "@gitcoin/ui";
 import { Icon } from "@gitcoin/ui";
 import { useClickOutside } from "@gitcoin/ui/hooks/useClickOutside";
 import { getChainInfo } from "@gitcoin/ui/lib";
 import { useDisconnect } from "wagmi";
-import { useGTC } from "@/hooks/useGTC";
-import { SquidContext } from "@/providers/SquidProvider";
+import { useGTC } from "@/hooks/tokens";
+import { useSquidWidget } from "@/hooks/frontend";
 
 export const GtcPopover = () => {
   const popoverRef = useRef<HTMLDivElement>(null);
-  const { setIsSquidOpen } = useContext(SquidContext);
+  const { setIsSquidOpen } = useSquidWidget();
   useClickOutside(popoverRef, () => {
     if (isOpen) setIsOpen(false);
   });

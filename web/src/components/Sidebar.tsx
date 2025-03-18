@@ -1,11 +1,14 @@
-import { Icon, IconType, SideNav, SideNavItem } from "@gitcoin/ui";
-import { useLocation, useNavigate } from "react-router";
 import { useMemo } from "react";
-// Get from current path the chainId and roundId and the path and pass into the SideNav props the activeId
+import { useLocation, useNavigate } from "react-router";
+import { Icon, IconType, SideNav, SideNavItem } from "@gitcoin/ui";
+import { getChainInfo } from "@gitcoin/ui/lib";
+import moment from "moment";
+import { useGetAllPoolsOverview } from "@/hooks/backend";
 
 export const Sidebar = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { data: poolsOverview } = useGetAllPoolsOverview();
 
   const activeId = useMemo(() => {
     // Handle both hash and non-hash routes
@@ -16,14 +19,57 @@ export const Sidebar = () => {
     return pathname === "/" ? "/" : pathname.slice(1);
   }, [pathname]);
 
-  const roundItems = [
-    {
-      name: "Example Round",
-      chainId: "1",
-      roundId: "123",
-      iconType: IconType.ARBITRUM,
-    },
-  ];
+  const roundItems =
+    poolsOverview?.map((pool) => ({
+      name: pool.roundMetadata.name,
+      chainId: pool.chainId,
+      roundId: pool.id,
+      iconType: getChainInfo(pool.chainId).icon,
+    })) || [];
+
+  const activeRoundsItems = useMemo<SideNavItem[]>(() => {
+    const activeRounds =
+      poolsOverview
+        ?.filter((round) => moment(round.donationsEndTime).isAfter(moment()))
+        .map((pool) => ({
+          content: pool.roundMetadata.name,
+          id: `staking-round/${pool.chainId}/${pool.id}`,
+          iconType: getChainInfo(pool.chainId).icon,
+        })) || [];
+    if (activeRounds.length === 0) {
+      return [];
+    }
+    return [
+      {
+        content: "Active rounds",
+        id: pathname,
+        isSeparator: true,
+      },
+      ...activeRounds,
+    ];
+  }, [poolsOverview]);
+
+  const endedRoundsItems = useMemo<SideNavItem[]>(() => {
+    const endedRounds =
+      poolsOverview
+        ?.filter((round) => moment(round.donationsEndTime).isBefore(moment()))
+        .map((pool) => ({
+          content: pool.roundMetadata.name,
+          id: `staking-round/${pool.chainId}/${pool.id}`,
+          iconType: getChainInfo(pool.chainId).icon,
+        })) || [];
+    if (endedRounds.length === 0) {
+      return [];
+    }
+    return [
+      {
+        content: "Ended rounds",
+        id: pathname,
+        isSeparator: true,
+      },
+      ...endedRounds,
+    ];
+  }, [poolsOverview]);
 
   const items = useMemo<SideNavItem[]>(
     () => [
@@ -42,31 +88,17 @@ export const Sidebar = () => {
             content: "All Grants",
             id: "staking-rounds",
           },
-          {
-            content: "Active",
-            id: pathname,
-            isSeparator: true,
-          },
-
-          ...roundItems.map(({ name, chainId, roundId, iconType }) => ({
-            content: name,
-            id: `staking-round/${chainId}/${roundId}`,
-            iconType,
-          })),
+          ...activeRoundsItems,
+          ...endedRoundsItems,
         ],
       },
       {
         content: "Claim Rewards",
         id: "/claim-rewards",
-        icon: (
-          <Icon
-            type={IconType.LIGHTNING_BOLT}
-            className="stroke-black fill-black"
-          />
-        ),
+        icon: <Icon type={IconType.LIGHTNING_BOLT} className="fill-black stroke-black" />,
       },
     ],
-    [roundItems]
+    [roundItems],
   );
 
   return (
