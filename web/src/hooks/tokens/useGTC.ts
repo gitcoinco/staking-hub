@@ -1,5 +1,6 @@
 import { getChainById } from "@gitcoin/gitcoin-chain-data";
 import { useAccount, useBalance } from "wagmi";
+import { useTokenPrice } from "@/hooks/tokens/useTokenPrice";
 
 export const useGTC = () => {
   const { address, chainId } = useAccount();
@@ -15,14 +16,29 @@ export const useGTC = () => {
     chainId,
   });
 
+  const { data: price } = useTokenPrice("GTC");
+
+  if (!tokenAddress) {
+    return {
+      formatted: "0",
+      value: BigInt(0),
+      decimals: 18,
+      symbol: "GTC",
+      displayValue: "0",
+      chainId,
+      price: price ?? 0,
+    };
+  }
+
   return {
     ...(balance ?? {
-      formatted: 0,
+      formatted: "0",
       value: BigInt(0),
       decimals: 18,
       symbol: "GTC",
       displayValue: "0",
     }),
     chainId,
+    price: price ?? 0,
   };
 };
