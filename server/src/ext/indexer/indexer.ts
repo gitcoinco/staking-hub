@@ -24,7 +24,7 @@ import {
 import type { Logger } from 'winston';
 import { IsNullError, NotFoundError } from '@/errors';
 import { env } from '@/env';
-
+import { claimableRounds } from '@/utils/getMerkleAirdrop';
 class IndexerClient {
   private static instance: IndexerClient | null = null;
   private readonly indexerEndpoint: string;
@@ -172,9 +172,15 @@ class IndexerClient {
           roundMetadataCid: round.roundMetadataCid,
           donationsStartTime: round.donationsStartTime,
           donationsEndTime: round.donationsEndTime,
+          matchTokenAddress: round.matchTokenAddress,
           totalStaked,
           approvedProjectCount: round.applications.length,
           applications: round.applications,
+          isClaimable: claimableRounds.some(
+            claimableRound =>
+              claimableRound.roundId == round.id &&
+              Number(claimableRound.chainId) == chainId
+          ),
         });
       }
 
