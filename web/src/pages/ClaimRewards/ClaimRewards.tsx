@@ -1,158 +1,72 @@
-import { Button } from "@gitcoin/ui";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button, ProgressModal } from "@gitcoin/ui";
 import { cn } from "@gitcoin/ui/lib";
-import { StakeProjectCardProps } from "@gitcoin/ui/project";
-
 import { StakePoolCard } from "@gitcoin/ui/pool";
-
-const simpleRound = {
-  roundName: "Grants Round Defi",
-  roundDescription: "Grants Round Defi description text here",
-  roundId: "90",
-  chainId: 10,
-  votingStartDate: new Date("2024-12-09T19:22:56.413Z"),
-  votingEndDate: new Date("2024-12-10T19:23:30.678Z"),
-  onClick: (pool?: { chainId: number; roundId: string }) => {
-    console.log(pool);
-  },
-  createdAtBlock: 123456,
-  matchingPoolAmount: 100000,
-  stakedAmount: 100000,
-  totalProjects: 100,
-  totalStaked: 100000,
-  lastStakeDate: new Date("2024-12-08T19:22:56.413Z"),
-  onClaim: () => void 0,
-};
-
-const availableToClaimCardProps: StakeProjectCardProps[] = [
-  {
-    name: "Project Name",
-    description: "Project Description",
-    image: "https://picsum.photos/200",
-    variant: "staked",
-    id: "1",
-    chainId: 1,
-    roundId: "1",
-    amount: 100,
-    stakedAt: new Date(),
-    unlockAt: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 10),
-  },
-  {
-    name: "Project Name",
-    description: "Project Description",
-    image: "https://picsum.photos/200",
-    variant: "staked",
-    id: "2",
-    chainId: 1,
-    roundId: "1",
-    amount: 100,
-    stakedAt: new Date(),
-    unlockAt: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 10),
-  },
-];
-
-const claimRewardsCardProps: StakeProjectCardProps[] = [
-  {
-    name: "Project Name",
-    description: "Project Description",
-    image: "https://picsum.photos/200",
-    variant: "claimed",
-    id: "1",
-    chainId: 1,
-    roundId: "1",
-    amount: 100,
-    stakedAt: new Date(),
-    unlockAt: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 10),
-    claimedAt: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 30),
-    txHash: "0x123",
-  },
-  {
-    name: "Project Name",
-    description: "Project Description",
-    image: "https://picsum.photos/200",
-    variant: "claimed",
-    id: "2",
-    chainId: 1,
-    roundId: "1",
-    amount: 100,
-    stakedAt: new Date(),
-    unlockAt: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 10),
-    claimedAt: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 30),
-    txHash: "0x123",
-  },
-];
-
-const upcomingStakeCardProps: StakeProjectCardProps[] = [
-  {
-    name: "Project Name",
-    description: "Project Description",
-    image: "https://picsum.photos/200",
-    variant: "staked",
-    id: "1",
-    chainId: 1,
-    roundId: "1",
-    amount: 100,
-    stakedAt: new Date(),
-    unlockAt: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 10),
-  },
-  {
-    name: "Project Name",
-    description: "Project Description",
-    image: "https://picsum.photos/200",
-    variant: "staked",
-    id: "2",
-    chainId: 1,
-    roundId: "1",
-    amount: 100,
-    stakedAt: new Date(),
-    unlockAt: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 10),
-  },
-];
-
-const claimablePools = [
-  {
-    ...simpleRound,
-    roundId: "91",
-    roundName: "Grants Round Defi",
-    stakedProjects: availableToClaimCardProps,
-  },
-  {
-    ...simpleRound,
-    roundId: "91",
-    roundName: "Grants Round Defi 2",
-    stakedProjects: availableToClaimCardProps,
-  },
-];
-
-const pendingPools = [
-  {
-    ...simpleRound,
-    roundId: "92",
-    roundName: "Grants Round Defi 3",
-    votingEndDate: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 10),
-    stakedProjects: upcomingStakeCardProps,
-  },
-];
-
-const claimedPools = [
-  {
-    ...simpleRound,
-    roundId: "93",
-    roundName: "Grants Round Defi 4",
-    claimed: true,
-    stakedProjects: claimRewardsCardProps,
-  },
-];
+import { zeroAddress } from "viem";
+import { useAccount } from "wagmi";
+import { LoadingPage } from "@/components/Loading";
+import { useGetStakerOverview } from "@/hooks/backend";
+import { useClaim } from "@/hooks/contracts";
+import { useGetRewardsAmountInUSD } from "@/hooks/tokens";
+import { ClaimConfirmationDialog } from "./components";
+import {
+  getClaimableRewardsInUSDParams,
+  prepareClaimData,
+  processRewardsData,
+} from "./utils/claimRewards";
 
 export const ClaimRewards = () => {
+  const { address } = useAccount();
+  const navigate = useNavigate();
+  const { batchClaim, isLoading: isClaimLoading, steps } = useClaim(); // Assuming you have this hook
+
+  const { data: stakeOverview, isLoading, refetch } = useGetStakerOverview(address ?? zeroAddress);
+  const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState(false);
+  const { data: rewardsAmountInUSD, isLoading: isRewardsAmountInUSDLoading } =
+    useGetRewardsAmountInUSD(getClaimableRewardsInUSDParams(stakeOverview));
+
+  if (
+    isLoading ||
+    isRewardsAmountInUSDLoading ||
+    !stakeOverview ||
+    rewardsAmountInUSD === undefined
+  ) {
+    return <LoadingPage />;
+  }
+
+  const handleToggleConfirmationDialog = () => {
+    setIsConfirmationDialogOpen(!isConfirmationDialogOpen);
+  };
+
+  const handlePoolClick = (chainId: number, roundId: string) => {
+    navigate(`/staking-round/${chainId}/${roundId}`);
+  };
+
+  const { claimablePools, pendingPools, claimedPools, RewardsByPool, totalUnstaked } =
+    processRewardsData(stakeOverview, handlePoolClick);
+
+  const handleClaimAll = async (returnToMatchingPool: boolean) => {
+    handleToggleConfirmationDialog();
+    const claims = prepareClaimData(
+      claimablePools,
+      RewardsByPool,
+      address ?? zeroAddress,
+      returnToMatchingPool,
+    );
+    await batchClaim(claims, totalUnstaked);
+    await refetch();
+  };
+
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex justify-between items-center bg-purple-50 rounded-lg py-6 px-[56px]">
+      <div className="flex items-center justify-between rounded-lg bg-purple-50 px-[56px] py-6">
         <div className="flex flex-col items-start gap-2">
-          <div className="text-grey-900 text-sm font-semibold font-ui-sans leading-7">
+          <div className="text-grey-900 font-ui-sans text-sm font-semibold leading-7">
             Total claimable rewards
           </div>
-          <div className="text-black text-[32px]/[41.66px] font-normal font-ui-mono leading-7">
-            $100.00
+          <div className="font-ui-mono text-[32px]/[41.66px] font-normal leading-7 text-black">
+            {`$${rewardsAmountInUSD.toFixed(2)}`}
           </div>
         </div>
         <div>
@@ -160,42 +74,66 @@ export const ClaimRewards = () => {
             value="Claim all rewards"
             variant="ghost"
             className={cn(
-              "text-purple-700 bg-white",
-              "disabled:text-grey-500 disabled:bg-grey-100"
+              "bg-white text-purple-700",
+              "disabled:text-grey-500 disabled:bg-grey-100",
             )}
+            onClick={handleToggleConfirmationDialog}
+            disabled={claimablePools.length === 0 || isClaimLoading}
           />
         </div>
       </div>
+
       <div className="flex flex-col gap-6">
-        <span className=" text-2xl font-medium font-ui-sans leading-7">
+        <span className="font-ui-sans text-2xl font-medium leading-7">
           {`Ready to claim (${claimablePools.length})`}
         </span>
         <div className="flex flex-col gap-4">
-          {claimablePools.map((props) => (
-            <StakePoolCard key={props.roundId} data={props} />
-          ))}
+          {claimablePools.length > 0 ? (
+            claimablePools.map((props) => (
+              <StakePoolCard key={`${props.chainId}-${props.roundId}`} data={props} />
+            ))
+          ) : (
+            <div className="py-4 text-center text-gray-500">No rewards ready to claim</div>
+          )}
         </div>
       </div>
+
       <div className="flex flex-col gap-6">
-        <span className=" text-2xl font-medium font-ui-sans leading-7">
+        <span className="font-ui-sans text-2xl font-medium leading-7">
           {`Pending (${pendingPools.length})`}
         </span>
         <div className="flex flex-col gap-4">
-          {pendingPools.map((props) => (
-            <StakePoolCard key={props.roundId} data={props} />
-          ))}
+          {pendingPools.length > 0 ? (
+            pendingPools.map((props) => (
+              <StakePoolCard key={`${props.chainId}-${props.roundId}`} data={props} />
+            ))
+          ) : (
+            <div className="py-4 text-center text-gray-500">No pending stakes</div>
+          )}
         </div>
       </div>
+
       <div className="flex flex-col gap-6">
-        <span className=" text-2xl font-medium font-ui-sans leading-7">
+        <span className="font-ui-sans text-2xl font-medium leading-7">
           {`Claimed (${claimedPools.length})`}
         </span>
         <div className="flex flex-col gap-4">
-          {claimedPools.map((props) => (
-            <StakePoolCard key={props.roundId} data={props} />
-          ))}
+          {claimedPools.length > 0 ? (
+            claimedPools.map((props) => (
+              <StakePoolCard key={`${props.chainId}-${props.roundId}`} data={props} />
+            ))
+          ) : (
+            <div className="py-4 text-center text-gray-500">No claimed rewards</div>
+          )}
         </div>
       </div>
+      <ProgressModal isOpen={isClaimLoading} steps={steps} />
+      <ClaimConfirmationDialog
+        isOpen={isConfirmationDialogOpen}
+        onOpenChange={handleToggleConfirmationDialog}
+        onClaim={() => handleClaimAll(false)}
+        onGiveBack={() => handleClaimAll(true)}
+      />
     </div>
   );
 };

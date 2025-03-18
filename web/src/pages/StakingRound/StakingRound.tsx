@@ -32,7 +32,7 @@ import {
 
 export const StakingRound = () => {
   const { chainId, roundId } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   const applicationId = searchParams.get("applicationId");
 
