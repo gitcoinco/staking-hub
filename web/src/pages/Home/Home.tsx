@@ -1,101 +1,63 @@
-import { useAccount } from "wagmi";
-import { NotConnected } from "./components/NotConnected";
-import { StatCardGroup, StatCardGroupProps } from "@gitcoin/ui";
-import { StakePoolCard, StakePoolDataCardProps } from "@gitcoin/ui/pool";
 import { useNavigate } from "react-router-dom";
-
-const statCardGroupProps: StatCardGroupProps = {
-  stats: [
-    {
-      label: "Current GTC staked",
-      value: "1200 GTC",
-      className: "bg-moss-50 w-full",
-    },
-    {
-      label: "Total rewards",
-      value: "$600.00",
-      className: "bg-purple-50 w-full",
-    },
-    {
-      label: "Total # of stakes",
-      value: "3",
-      className: "bg-blue-50 w-full",
-    },
-  ],
-};
-
-const stakePoolCardProps: StakePoolDataCardProps[] = [
-  {
-    roundName: "Stake Pool 1",
-    roundDescription: "Stake Pool 1 description",
-    chainId: 10,
-    roundId: "1",
-    votingStartDate: new Date(),
-    votingEndDate: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 60),
-    totalProjects: 10,
-    totalStaked: 100,
-    matchingPoolAmount: 100,
-    stakedAmount: 100,
-    lastStakeDate: new Date(),
-    claimed: false,
-    isLoading: false,
-    onClaim: () => {},
-  },
-  {
-    roundName: "Stake Pool 2",
-    roundDescription: "Stake Pool 2 description",
-    chainId: 10,
-    roundId: "2",
-    votingStartDate: new Date(),
-    votingEndDate: new Date(),
-    totalProjects: 10,
-    totalStaked: 100,
-    matchingPoolAmount: 100,
-    stakedAmount: 100,
-    lastStakeDate: new Date(),
-    claimed: false,
-    isLoading: false,
-    onClaim: () => {},
-  },
-];
+import { StatCardGroup } from "@gitcoin/ui";
+import { StakePoolCard } from "@gitcoin/ui/pool";
+import { zeroAddress } from "viem";
+import { useAccount } from "wagmi";
+import { LoadingPage } from "@/components/Loading";
+import { useGetStakerOverview } from "@/hooks/backend";
+import { useGetRewardsAmountInUSD } from "@/hooks/tokens";
+import { getClaimedRewardsInUSDParams } from "./utils/getClaimedRewardsInUSDParams";
+import { getStakePoolCards } from "./utils/getStakePoolCards";
+import { getStatCardGroupProps } from "./utils/getStatCardGroupProps";
 
 export const Home = () => {
-  const { isConnected } = useAccount();
+  const { address } = useAccount();
   const navigate = useNavigate();
+
+  const { data: stakeOverview, isLoading } = useGetStakerOverview(address ?? zeroAddress);
+
+  const { data: claimedRewardsAmountInUSD, isLoading: isClaimedRewardsAmountInUSDLoading } =
+    useGetRewardsAmountInUSD(getClaimedRewardsInUSDParams(stakeOverview));
+
+  if (
+    isLoading ||
+    isClaimedRewardsAmountInUSDLoading ||
+    !stakeOverview ||
+    claimedRewardsAmountInUSD === undefined
+  ) {
+    return <LoadingPage />;
+  }
+
+  const stakePoolCards = getStakePoolCards(stakeOverview);
+  const statCardGroupProps = getStatCardGroupProps(stakeOverview, claimedRewardsAmountInUSD);
+
   return (
     <div>
-      {isConnected ? (
-        <div className="flex flex-col gap-8">
-          <StatCardGroup
-            {...statCardGroupProps}
-            className="grid xl:grid-cols-3 grid-cols-1"
-          />
-          <div className="flex flex-col gap-6">
-            <span className="text-2xl font-medium font-ui-sans">
-              {`Active Stakes (${stakePoolCardProps.length})`}
-            </span>
+      <div className="flex flex-col gap-8">
+        <StatCardGroup {...statCardGroupProps} className="grid grid-cols-1 xl:grid-cols-3" />
+        <div className="flex flex-col gap-6">
+          <span className="font-ui-sans text-2xl font-medium">
+            {`All Stakes (${stakePoolCards.length})`}
+          </span>
+          {stakePoolCards.length > 0 ? (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                {stakePoolCardProps.map((card) => (
+                {stakePoolCards.map((card) => (
                   <StakePoolCard
-                    key={card.roundId}
+                    key={`${card.chainId}-${card.roundId}`}
                     data={{
                       ...card,
-                      onClick: () => {
-                        navigate(
-                          `/staking-round/${card.chainId}/${card.roundId}`
-                        );
-                      },
+                      onClick: () => navigate(`/staking-round/${card.chainId}/${card.roundId}`),
                     }}
                   />
                 ))}
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="text-center text-gray-500">You haven't staked in any round yet</div>
+          )}
         </div>
-      ) : (
-        <NotConnected />
-      )}
+      </div>
     </div>
   );
 };

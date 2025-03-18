@@ -33,7 +33,7 @@ export const Router = () => {
   return (
     <Routes>
       <Route element={<MainLayout />}>
-        <Route element={<ProtectedRouter fallback={Home} />}>
+        <Route element={<ProtectedRouter />}>
           <Route path="/" element={<Home />} />
           <Route path="/staking-rounds" element={<StakingRounds />} />
 
