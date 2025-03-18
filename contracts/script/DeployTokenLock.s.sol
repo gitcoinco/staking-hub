@@ -12,7 +12,7 @@ contract DeployTokenLock is Script {
 
         // Token and unlock date only (removed EAS-related params)
         ERC20 token = ERC20(0x769E088b0165BA73D26E0642E26e2C969C24B1e3);
-        uint256 unlockDate = block.timestamp + 7 days;
+        uint256 unlockDate = 1742338800;
 
         // Setup unlock schedule
         uint256 unlockBegin = unlockDate;
