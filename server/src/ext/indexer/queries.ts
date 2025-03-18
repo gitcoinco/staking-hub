@@ -22,6 +22,7 @@ export const getRoundsWithApplications = gql`
       roundMetadataCid
       donationsStartTime
       donationsEndTime
+      matchTokenAddress
       applications(filter: { status: { equalTo: APPROVED } }) {
         id
         anchorAddress

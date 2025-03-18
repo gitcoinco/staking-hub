@@ -1,6 +1,10 @@
 import type { Request, Response } from 'express';
 import poolService from '@/service/PoolService';
-import { catchError, recoverSignerAddress, validateRequest } from '@/utils/utils';
+import {
+  catchError,
+  recoverSignerAddress,
+  validateRequest,
+} from '@/utils/utils';
 import { createLogger } from '@/logger';
 import { type PoolIdChainId, type Signature } from './types';
 import { ServerError, UnauthorizedError } from '@/errors';
@@ -11,7 +15,7 @@ import { PoolOverview, StakerOverview } from '@/ext/indexer/types';
 
 const logger = createLogger();
 
-interface RewardsForStakerBody extends PoolIdChainId, Signature { }
+interface RewardsForStakerBody extends PoolIdChainId, Signature {}
 
 /**
  * Check if the caller is the staker
@@ -37,24 +41,25 @@ const isCallerTheStaker = async <T>(
   return true;
 };
 
-
 /**
  * Get rewards for a given stakerId and signature
  * Optional chainId and alloPoolId to filter rewards for a specific pool
- * 
+ *
  * @param req - Express request object
  * @param res - Express response object
  */
-export const getRewardsForStaker = async (req: Request, res: Response): Promise<void> => {
-
+export const getRewardsForStaker = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   validateRequest(req, res);
 
   const { staker } = req.params;
-  
+
   const { chainId, alloPoolId, signature } = req.body as RewardsForStakerBody;
 
   const [errorStaker, isStaker] = await catchError(
-    isCallerTheStaker({staker: staker}, signature, staker)
+    isCallerTheStaker({ staker: staker }, signature, staker)
   );
 
   if (errorStaker !== undefined || isStaker === false) {
@@ -63,7 +68,9 @@ export const getRewardsForStaker = async (req: Request, res: Response): Promise<
     throw new UnauthorizedError('Unauthorized');
   }
 
-  const [error, rewards] = await catchError(poolService.getRewardsForStaker(staker.toLowerCase(), chainId, alloPoolId));
+  const [error, rewards] = await catchError(
+    poolService.getRewardsForStaker(staker.toLowerCase(), chainId, alloPoolId)
+  );
 
   if (error !== undefined || rewards === undefined) {
     logger.error('Error fetching rewards:', error);
@@ -74,13 +81,18 @@ export const getRewardsForStaker = async (req: Request, res: Response): Promise<
   res.status(200).json(rewards);
 };
 
-export const getStakerOverview = async (req: Request, res: Response): Promise<void> => {
+export const getStakerOverview = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   validateRequest(req, res);
 
   const { staker } = req.params;
 
   // get staked amount from contract
-  const [error, stakedClaimedData] = await catchError(indexerClient.getPoolStakesAndClaimsByStaker({staker: getAddress(staker)}));
+  const [error, stakedClaimedData] = await catchError(
+    indexerClient.getPoolStakesAndClaimsByStaker({ staker: getAddress(staker) })
+  );
 
   if (error !== undefined || stakedClaimedData === undefined) {
     logger.error('Error fetching staked amount:', error);
@@ -88,12 +100,20 @@ export const getStakerOverview = async (req: Request, res: Response): Promise<vo
     throw new ServerError(`Error fetching staked amount for staker ${staker}`);
   }
 
-  const totalStaked = stakedClaimedData.staked.reduce((acc, stake) => acc + Number(stake.amount), 0);
-  const unstakedAmount = stakedClaimedData.unstaked.reduce((acc, unstake) => acc + Number(unstake.amount), 0);
+  const totalStaked = stakedClaimedData.staked.reduce(
+    (acc, stake) => acc + Number(stake.amount),
+    0
+  );
+  const unstakedAmount = stakedClaimedData.unstaked.reduce(
+    (acc, unstake) => acc + Number(unstake.amount),
+    0
+  );
   const currentlyStaked = totalStaked - unstakedAmount;
 
   // Group pools by chainId to efficiently fetch metadata from grants-stack indexer
-  const poolsByChainId = stakedClaimedData.staked.reduce<Record<number, string[]>>((acc, stake) => {
+  const poolsByChainId = stakedClaimedData.staked.reduce<
+    Record<number, string[]>
+  >((acc, stake) => {
     const poolId = stake.poolId;
     const chainId = stake.chainId;
     if (!(chainId in acc)) {
@@ -110,11 +130,16 @@ export const getStakerOverview = async (req: Request, res: Response): Promise<vo
     const [errorFetching, indexerPoolData] = await catchError(
       indexerClient.getRoundsWithApplicationsCountAndStakedAmount({
         chainId: Number(chainId),
-        roundIds: poolsByChainId[chainId].map((poolId) => poolId),
+        roundIds: poolsByChainId[chainId].map(poolId => poolId),
       })
     );
 
-    if (errorFetching !== undefined || indexerPoolData === undefined || indexerPoolData === null || indexerPoolData.length === 0) {
+    if (
+      errorFetching !== undefined ||
+      indexerPoolData === undefined ||
+      indexerPoolData === null ||
+      indexerPoolData.length === 0
+    ) {
       logger.error('Error fetching indexer pool data:', errorFetching);
       res.status(500).json({ error: 'Internal server error' });
       return;
@@ -123,7 +148,9 @@ export const getStakerOverview = async (req: Request, res: Response): Promise<vo
     poolsOverview.push(...indexerPoolData);
   }
 
-  const [rewardsError, rewards] = await catchError(poolService.getRewardsForStaker(staker.toLowerCase())); 
+  const [rewardsError, rewards] = await catchError(
+    poolService.getRewardsForStaker(staker.toLowerCase())
+  );
 
   if (rewardsError !== undefined || rewards === undefined) {
     logger.error('Error fetching rewards:', rewardsError);
@@ -134,14 +161,11 @@ export const getStakerOverview = async (req: Request, res: Response): Promise<vo
   const stakerOverview: StakerOverview = {
     currentlyStaked,
     stakes: stakedClaimedData.staked,
-    rewards: rewards.map((reward) => ({
-      staker: reward.staker,
-      amount: reward.amount,
-    })),
+    rewards: rewards || [],
     claims: stakedClaimedData.claims,
     poolsOverview,
   };
 
   logger.info('Staker overview fetched successfully:', staker);
   res.status(200).json(stakerOverview);
-}
+};

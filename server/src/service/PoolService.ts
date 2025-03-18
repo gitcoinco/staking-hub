@@ -1,17 +1,15 @@
-import { type Reward, type Pool } from '@/entity/Pool';
+import { type Pool } from '@/entity/Pool';
 import { AlreadyExistsError } from '@/errors';
-import { RewardWithoutProof } from '@/ext/indexer';
+import { Reward, RewardWithChainIdAndPoolId } from '@/ext/indexer';
 import { poolRepository } from '@/repository';
+import { getMerkleAirdrop } from '@/utils/getMerkleAirdrop';
 
 class PoolService {
   async savePool(pool: Partial<Pool>): Promise<Pool> {
     return await poolRepository.save(pool);
   }
 
-  async createNewPool(
-    chainId: number,
-    alloPoolId: string,
-  ): Promise<void> {
+  async createNewPool(chainId: number, alloPoolId: string): Promise<void> {
     const _pool = await this.getPoolByChainIdAndAlloPoolId(chainId, alloPoolId);
     if (_pool !== null) {
       throw new AlreadyExistsError(`Pool already exists`);
@@ -49,19 +47,19 @@ class PoolService {
     chainId: number,
     alloPoolId: string,
     staker?: string
-  ): Promise<RewardWithoutProof[]> {
+  ): Promise<Reward[]> {
     const pool = await this.getPoolByChainIdAndAlloPoolId(chainId, alloPoolId);
     if (pool == null) {
       throw new Error('Pool not found');
     }
-    
-    const rewards = pool.rewards.filter((reward) => reward.staker === staker);
-    
+
+    const rewards = pool.rewards.filter(reward => reward.staker === staker);
+
     if (rewards.length === 0) {
       throw new Error('No rewards found');
     }
 
-    return rewards.map((reward) => ({
+    return rewards.map(reward => ({
       staker: reward.staker,
       amount: reward.amount,
     }));
@@ -70,13 +68,15 @@ class PoolService {
   async getRewardsForStaker(
     staker: string,
     chainId?: number,
-    alloPoolId?: string,
-  ): Promise<Reward[]> {
-
+    alloPoolId?: string
+  ): Promise<RewardWithChainIdAndPoolId[]> {
     let pools: Pool[] = [];
-    
+
     if (chainId !== undefined && alloPoolId !== undefined) {
-      const pool = await this.getPoolByChainIdAndAlloPoolId(chainId, alloPoolId);
+      const pool = await this.getPoolByChainIdAndAlloPoolId(
+        chainId,
+        alloPoolId
+      );
       if (pool == null) {
         throw new Error('Pool not found');
       }
@@ -86,7 +86,19 @@ class PoolService {
     }
 
     // Filter rewards by staker
-    const rewards: Reward[] = pools.flatMap(pool => pool.rewards).filter(reward => reward && reward.staker === staker);
+    const rewards: RewardWithChainIdAndPoolId[] = pools
+      .flatMap(pool => {
+        return pool?.rewards?.map(reward => ({
+          ...reward,
+          chainId: pool.chainId,
+          poolId: pool.alloPoolId,
+          merkleAirdropAddress: getMerkleAirdrop(
+            pool.alloPoolId,
+            pool.chainId.toString()
+          ),
+        }));
+      })
+      .filter(reward => reward && reward.staker === staker);
 
     return rewards;
   }
