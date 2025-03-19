@@ -15,6 +15,15 @@ const router = Router();
  *     tags:
  *       - pool
  *     summary: Creates a pool
+ *     security:
+ *       - AdminApiKey: []
+ *     parameters:
+ *       - in: header
+ *         name: X-Admin-API-Key
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Admin API key for authentication
  *     requestBody:
  *       required: true
  *       content:
@@ -38,6 +47,8 @@ const router = Router();
  *         description: Pool created successfully
  *       400:
  *         description: Invalid poolId or chainId format
+ *       401:
+ *         description: Unauthorized - Invalid or missing admin API key
  *       500:
  *         description: Internal server error
  */
