@@ -5,8 +5,9 @@ import { createLogger } from '@/logger';
 
 import { IsNullError, NotFoundError, ServerError } from '@/errors';
 import { type PoolIdChainId } from './types';
-import { indexerClient, PoolOverview, Round, RoundWithStakes } from '@/ext/indexer';
+import { indexerClient, PoolOverview, RoundWithStakes } from '@/ext/indexer';
 import { type Pool } from '@/entity/Pool';
+import { adminAuthMiddleware } from '@/controllers/adminAuthMiddleware';
 
 const logger = createLogger();
 
@@ -19,6 +20,8 @@ const logger = createLogger();
 export const createPool = async (req: Request, res: Response): Promise<void> => {
   // Validate the incoming request
   validateRequest(req, res);
+  
+  adminAuthMiddleware(req, res);
 
   // Extract chainId and alloPoolId from the request body
   const { chainId, alloPoolId } = req.body as PoolIdChainId;
