@@ -2,7 +2,7 @@ import { gql } from 'graphql-request';
 
 export const getRounds = gql`
   query Rounds($chainId: Int!, $roundIds: [String!]!) {
-    rounds(filter: { chainId: { equalTo: $chainId }, id: { in: $roundIds } }) {
+    rounds(where: { chainId: { _eq: $chainId }, id: { _in: $roundIds } }) {
       id
       chainId
       roundMetadata
@@ -15,7 +15,7 @@ export const getRounds = gql`
 
 export const getRoundsWithApplications = gql`
   query RoundsApplications($chainId: Int!, $roundIds: [String!]!) {
-    rounds(filter: { chainId: { equalTo: $chainId }, id: { in: $roundIds } }) {
+    rounds(where: { chainId: { _eq: $chainId }, id: { _in: $roundIds } }) {
       chainId
       id
       roundMetadata
@@ -23,7 +23,7 @@ export const getRoundsWithApplications = gql`
       donationsStartTime
       donationsEndTime
       matchTokenAddress
-      applications(filter: { status: { equalTo: APPROVED } }) {
+      applications(where: { status: { _eq: APPROVED } }) {
         id
         anchorAddress
         metadata
@@ -32,7 +32,7 @@ export const getRoundsWithApplications = gql`
         projectId
         totalDonationsCount
         totalAmountDonatedInUsd
-        project: canonicalProject {
+        project {
           metadata
           metadataCid
         }
@@ -43,14 +43,14 @@ export const getRoundsWithApplications = gql`
 
 export const getRoundsWithApplicationsStatus = gql`
   query RoundsWithApplicationsStatus($chainId: Int!, $roundIds: [String!]!) {
-    rounds(filter: { chainId: { equalTo: $chainId }, id: { in: $roundIds } }) {
+    rounds(where: { chainId: { _eq: $chainId }, id: { _in: $roundIds } }) {
       chainId
       id
       roundMetadata
       roundMetadataCid
       donationsStartTime
       donationsEndTime
-      applications(filter: { status: { equalTo: APPROVED } }) {
+      applications(where: { status: { _eq: APPROVED } }) {
         id
         anchorAddress
         metadata
@@ -59,7 +59,7 @@ export const getRoundsWithApplicationsStatus = gql`
         projectId
         totalDonationsCount
         totalAmountDonatedInUsd
-        project: canonicalProject {
+        project {
           metadata
           metadataCid
         }
@@ -70,22 +70,20 @@ export const getRoundsWithApplicationsStatus = gql`
 
 export const getRoundWithApplications = gql`
   query RoundApplications($chainId: Int!, $roundId: String!) {
-    rounds(
-      filter: { chainId: { equalTo: $chainId }, id: { equalTo: $roundId } }
-    ) {
+    rounds(where: { chainId: { _eq: $chainId }, id: { _eq: $roundId } }) {
       chainId
       id
       roundMetadata
       roundMetadataCid
       donationsStartTime
       donationsEndTime
-      applications(filter: { status: { equalTo: APPROVED } }) {
+      applications(where: { status: { _eq: APPROVED } }) {
         id
         metadata
         metadataCid
         status
         projectId
-        project: canonicalProject {
+        project {
           metadata
           metadataCid
         }
@@ -112,9 +110,7 @@ export const getApplicationWithRound = gql`
 
 export const getRoundMatchingDistributions = gql`
   query RoundMatchingDistributions($chainId: Int!, $roundId: String!) {
-    rounds(
-      filter: { chainId: { equalTo: $chainId }, id: { equalTo: $roundId } }
-    ) {
+    rounds(where: { chainId: { _eq: $chainId }, id: { _eq: $roundId } }) {
       matchAmount
       donationsEndTime
       matchingDistribution
