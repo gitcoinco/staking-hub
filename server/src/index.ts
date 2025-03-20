@@ -30,11 +30,13 @@ process.on('uncaughtException', (error: Error) => {
 const app = express();
 const logger = createLogger();
 
-app.use(cors({
-  credentials: true, // Important for SIWE authentication
-  // origin: process.env.FRONTEND_URL ?? 'http://localhost:3000'
-  origin: '*'
-}));
+app.use(
+  cors({
+    credentials: true, // Important for SIWE authentication
+    // origin: process.env.FRONTEND_URL ?? 'http://localhost:3000'
+    origin: '*',
+  })
+);
 
 app.get('/', (req, res) => {
   res.json({
@@ -45,9 +47,9 @@ app.get('/', (req, res) => {
     data: {
       current_task: 'Stake GTC for your favorite projects 🚀',
       projects: [
-        { name: 'Project Alpha', round: "GG23 OSO Round" },
-        { name: 'Project Beta', round: "GG23 Infra Round" },
-        { name: 'Project Gamma', round: "GG23 Infra Round" },
+        { name: 'Project Alpha', round: 'GG23 OSO Round' },
+        { name: 'Project Beta', round: 'GG23 Infra Round' },
+        { name: 'Project Gamma', round: 'GG23 Infra Round' },
       ],
     },
     tips: [
@@ -112,6 +114,9 @@ const port = Number(env.PORT ?? 3000);
 // Start the server
 app.listen(port, () => {
   logger.info(`Server is running on port ${port}`);
+  logger.info(`AlloIndexer ${env.INDEXER_URL}`);
+  logger.info(`StakingIndexer ${env.STAKING_INDEXER_URL}`);
+
   logger.info(
     `API documentation available at http://localhost:${port}/api-docs`
   );
