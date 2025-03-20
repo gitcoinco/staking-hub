@@ -1,3 +1,5 @@
+import { GraphQLClient } from 'graphql-request';
+import type { Logger } from 'winston';
 import { createLogger } from '@/logger';
 import type {
   RoundApplicationsQueryResponse,
@@ -13,7 +15,6 @@ import type {
   Claim,
   PoolStakesQueryResponse,
 } from './types';
-import request from 'graphql-request';
 import {
   getRoundsWithApplications,
   getRoundMatchingDistributions,
@@ -21,44 +22,20 @@ import {
   getPoolStakes,
   getPoolStakesAndClaimsByStaker,
 } from './queries';
-import type { Logger } from 'winston';
-import { IsNullError, NotFoundError } from '@/errors';
+import { NotFoundError } from '@/errors';
 import { env } from '@/env';
 import { claimableRounds } from '@/utils/getMerkleAirdrop';
+import { createGraphQLClient } from './utils';
+
 class IndexerClient {
   private static instance: IndexerClient | null = null;
-  private readonly indexerEndpoint: string;
-  private readonly stakingIndexerEndpoint: string;
   private readonly logger: Logger;
+  private readonly alloIndexerClient: GraphQLClient;
+  private readonly stakingIndexerClient: GraphQLClient;
 
   private constructor() {
-    this.indexerEndpoint = env.INDEXER_URL ?? '';
-    this.stakingIndexerEndpoint = env.STAKING_INDEXER_URL ?? '';
-
-    if (this.indexerEndpoint === '') {
-      throw new IsNullError('INDEXER_URL is not set');
-    }
-
-    if (this.stakingIndexerEndpoint === '') {
-      throw new IsNullError('STAKING_INDEXER_URL is not set');
-    }
-
-    if (this.indexerEndpoint.endsWith('/')) {
-      this.indexerEndpoint = this.indexerEndpoint.slice(0, -1);
-    }
-
-    if (this.stakingIndexerEndpoint.endsWith('/')) {
-      this.stakingIndexerEndpoint = this.stakingIndexerEndpoint.slice(0, -1);
-    }
-
-    if (!this.indexerEndpoint.endsWith('/graphql')) {
-      this.indexerEndpoint += '/graphql';
-    }
-
-    if (!this.stakingIndexerEndpoint.endsWith('/graphql')) {
-      this.stakingIndexerEndpoint += '/graphql';
-    }
-
+    this.alloIndexerClient = createGraphQLClient(env.INDEXER_URL);
+    this.stakingIndexerClient = createGraphQLClient(env.STAKING_INDEXER_URL);
     this.logger = createLogger('Indexer.ts');
   }
 
@@ -107,11 +84,11 @@ class IndexerClient {
     };
 
     try {
-      const response: RoundApplicationsQueryResponse = await request(
-        this.indexerEndpoint,
-        getRoundsWithApplications,
-        requestVariables
-      );
+      const response: RoundApplicationsQueryResponse =
+        await this.alloIndexerClient.request(
+          getRoundsWithApplications,
+          requestVariables
+        );
 
       if (response.rounds.length === 0) {
         this.logger.warn(
@@ -144,11 +121,11 @@ class IndexerClient {
   }): Promise<PoolOverview[]> {
     const requestVariables = { chainId, roundIds };
     try {
-      const response: RoundApplicationsQueryResponse = await request(
-        this.indexerEndpoint,
-        getRoundsWithApplications,
-        requestVariables
-      );
+      const response: RoundApplicationsQueryResponse =
+        await this.alloIndexerClient.request(
+          getRoundsWithApplications,
+          requestVariables
+        );
 
       const rounds = response.rounds;
 
@@ -204,11 +181,11 @@ class IndexerClient {
     const requestVariables = { chainId, roundId };
 
     try {
-      const response: RoundMatchingDistributionsQueryResponse = await request(
-        this.indexerEndpoint,
-        getRoundMatchingDistributions,
-        requestVariables
-      );
+      const response: RoundMatchingDistributionsQueryResponse =
+        await this.alloIndexerClient.request(
+          getRoundMatchingDistributions,
+          requestVariables
+        );
 
       if (response.rounds.length === 0) {
         this.logger.warn(
@@ -239,11 +216,8 @@ class IndexerClient {
   }): Promise<Round[]> {
     const requestVariables = { chainId, roundIds };
     try {
-      const response: GetRoundsQueryResponse = await request(
-        this.indexerEndpoint,
-        getRounds,
-        requestVariables
-      );
+      const response: GetRoundsQueryResponse =
+        await this.alloIndexerClient.request(getRounds, requestVariables);
 
       return response.rounds;
     } catch (error) {
@@ -261,11 +235,11 @@ class IndexerClient {
   }): Promise<Stake[]> {
     const requestVariables = { chainId, poolId };
     try {
-      const response: PoolStakesQueryResponse = await request(
-        this.stakingIndexerEndpoint,
-        getPoolStakes,
-        requestVariables
-      );
+      const response: PoolStakesQueryResponse =
+        await this.stakingIndexerClient.request(
+          getPoolStakes,
+          requestVariables
+        );
 
       return response.TokenLock_Locked;
     } catch (error) {
@@ -283,11 +257,11 @@ class IndexerClient {
   }): Promise<{ staked: Stake[]; unstaked: UnStake[]; claims: Claim[] }> {
     const requestVariables = { staker };
     try {
-      const response: PoolStakesAndClaimsQueryResponse = await request(
-        this.stakingIndexerEndpoint,
-        getPoolStakesAndClaimsByStaker,
-        requestVariables
-      );
+      const response: PoolStakesAndClaimsQueryResponse =
+        await this.stakingIndexerClient.request(
+          getPoolStakesAndClaimsByStaker,
+          requestVariables
+        );
 
       return {
         staked: response.TokenLock_Locked,
