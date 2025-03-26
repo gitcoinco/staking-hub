@@ -34,7 +34,7 @@ export const StakingRound = () => {
   const { chainId, roundId } = useParams();
   const [searchParams] = useSearchParams();
 
-  const applicationId = searchParams.get("applicationId");
+  const applicationId = searchParams.get("id");
 
   const showLeaderboard = useMemo(() => applicationId === null, [applicationId]);
   const { formatted: userGTCBalance, price: gtcPrice } = useGTC();
@@ -65,7 +65,32 @@ export const StakingRound = () => {
     handleApplyToAll,
     handleClearAll,
     handleSortChange,
-  } = useStakingRoundState(userGTCBalance);
+  } = useStakingRoundState();
+
+  const applicationToStake = () => {
+    if (applicationId) {
+      const props = projects.find((project) => project.id === applicationId);
+      if (!props) {
+        return null;
+      }
+
+      const currentStake = applicationsToStakeAmount[props.id] || 0;
+      const maxStake = calculateMaxStake(Number(userGTCBalance), totalStaked, currentStake);
+
+      return (
+        <StakeProjectCard
+          key={props.id}
+          {...props}
+          variant={"leaderboard"}
+          onStakeChange={handleStakeChange}
+          maxStakeAmount={maxStake}
+          stakeAmount={currentStake}
+        />
+      );
+    }
+
+    return null;
+  };
 
   // Get sorted projects data
   const projects = useProjectsData(
@@ -96,6 +121,30 @@ export const StakingRound = () => {
     await refetch();
     handleClearAll();
   };
+
+  // Modify the projects filtering logic
+  const filteredProjects = useMemo(() => {
+    if (!applicationId || !projects.length) return projects;
+
+    // Filter out the selected application from the leaderboard
+    return projects.filter((project) => project.id !== applicationId);
+  }, [projects, applicationId]);
+
+  // Update maxAmountToApplyToAll calculation
+  const maxAmountToApplyToAll = useMemo(() => {
+    // Get the selected project's current stake amount
+    const selectedProjectCurrentStake = applicationId
+      ? applicationsToStakeAmount[applicationId] || 0
+      : 0;
+
+    // Calculate available balance considering the current stake of selected project
+    const availableBalance = Number(userGTCBalance) - selectedProjectCurrentStake;
+
+    // Use filteredProjects.length for division (projects excluding the selected one)
+    const projectCount = filteredProjects.length || 1; // Prevent division by zero
+
+    return Math.max(0, availableBalance / projectCount);
+  }, [userGTCBalance, applicationId, filteredProjects.length, applicationsToStakeAmount]);
 
   // Get sort options for the dropdown
   const sortOptions = getSortOptions();
@@ -179,6 +228,8 @@ export const StakingRound = () => {
           </div>
         </div>
 
+        {applicationToStake()}
+
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-3xl font-semibold">
             {getLeaderboardTitle(sortOption)}
@@ -205,10 +256,14 @@ export const StakingRound = () => {
                 <Input
                   type="number"
                   min={0}
-                  max={Number(userGTCBalance) / projects.length}
-                  value={amountToApplyToAll || ""}
+                  max={maxAmountToApplyToAll}
+                  value={amountToApplyToAll === null ? "" : amountToApplyToAll}
                   placeholder="Amount (GTC)"
-                  onChange={(e) => setAmountToApplyToAll(Number(e.target.value))}
+                  onChange={(e) => {
+                    const value = Number(e.target.value);
+                    // Ensure the input value doesn't exceed maxAmountToApplyToAll
+                    setAmountToApplyToAll(Math.min(value, maxAmountToApplyToAll));
+                  }}
                   className="h-9 w-40 px-3 py-2 outline-none ring-transparent focus:border-2 focus:shadow-none focus:outline-0 focus:ring-transparent"
                 />
                 <span className="text-grey-500 font-ui-sans shrink-0 text-xs font-normal leading-[14px]">
@@ -218,7 +273,7 @@ export const StakingRound = () => {
                   value="Apply to All"
                   variant="light-purple"
                   className="text-purple-700"
-                  onClick={() => handleApplyToAll(projects)}
+                  onClick={() => handleApplyToAll(filteredProjects, applicationId ?? undefined)}
                 />
               </div>
             )}
@@ -226,12 +281,12 @@ export const StakingRound = () => {
         </div>
 
         <div className="flex max-h-[750px] flex-col gap-2 overflow-y-auto">
-          {projects.length === 0 && (
+          {filteredProjects.length === 0 && (
             <div className="flex h-[200px] items-center justify-center">
               <span className="font-ui-sans text-base font-bold">No projects found</span>
             </div>
           )}
-          {projects.map((props) => {
+          {filteredProjects.map((props) => {
             const currentStake = applicationsToStakeAmount[props.id] || 0;
             const maxStake = calculateMaxStake(Number(userGTCBalance), totalStaked, currentStake);
 
@@ -239,7 +294,7 @@ export const StakingRound = () => {
               <StakeProjectCard
                 key={props.id}
                 {...props}
-                variant={showLeaderboard ? "leaderboard" : "stake"}
+                variant={"leaderboard"}
                 onStakeChange={handleStakeChange}
                 maxStakeAmount={maxStake}
                 stakeAmount={currentStake}
