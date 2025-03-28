@@ -53,7 +53,7 @@ export const useProjectsData = (
         tokenUsdValue: gtcPrice, // TODO: get from backend
         totalStaked:
           Number(poolSummary.totalStakesByAnchorAddress[getAddress(app.anchorAddress)] ?? 0) / 1e18,
-        numberOfContributors: app.totalDonationsCount,
+        numberOfContributors: app.uniqueDonorsCount,
         totalDonations: app.totalAmountDonatedInUsd,
         anchorAddress: app.anchorAddress,
         isStakingPeriodOver: isRoundOver,
