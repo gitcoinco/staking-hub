@@ -1,6 +1,6 @@
 -include .env
 
-.PHONY: install test clean build deploy-sepolia deploy-arbitrum deploy-tokenlock-sepolia deploy-tokenlock-arbitrum deploy-airdrop-sepolia deploy-airdrop-arbitrum deploy-anvil deploy-airdrop-anvil lock-tokens-sepolia lock-tokens-arbitrum lock-tokens-anvil
+.PHONY: install test clean build deploy-sepolia deploy-arbitrum deploy-mainnet deploy-tokenlock-sepolia deploy-tokenlock-arbitrum deploy-tokenlock-mainnet deploy-airdrop-sepolia deploy-airdrop-arbitrum deploy-airdrop-mainnet deploy-anvil deploy-airdrop-anvil lock-tokens-sepolia lock-tokens-arbitrum lock-tokens-mainnet lock-tokens-anvil
 
 # Install dependencies
 install:
@@ -111,4 +111,35 @@ lock-tokens-anvil:
 	forge script script/LockTokens.s.sol:LockTokens \
 		--rpc-url http://localhost:8545 \
 		--broadcast \
-		--private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 
+		--private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+# Deploy to Ethereum Mainnet
+deploy-mainnet:
+	forge script script/DeployTokenLock.s.sol:DeployTokenLock \
+		--rpc-url $(MAINNET_RPC_URL) \
+		--broadcast \
+		--verify \
+		-vvvv
+
+# Deploy TokenLock to Ethereum Mainnet  
+deploy-tokenlock-mainnet:
+	forge script script/DeployTokenLock.s.sol:DeployTokenLock \
+		--rpc-url $(MAINNET_RPC_URL) \
+		--broadcast \
+		--verify \
+		-vvvv
+
+# Deploy MerkleAirdrop to Ethereum Mainnet
+deploy-airdrop-mainnet:
+	forge script script/DeployMerkleAirdrop.s.sol:DeployMerkleAirdrop \
+		--rpc-url $(MAINNET_RPC_URL) \
+		--broadcast \
+		--verify \
+		-vvvv
+
+# Lock tokens on Ethereum Mainnet
+lock-tokens-mainnet:
+	forge script script/LockTokens.s.sol:LockTokens \
+		--rpc-url $(MAINNET_RPC_URL) \
+		--broadcast \
+		-vvvv 
