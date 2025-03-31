@@ -9,6 +9,11 @@ export const getStakingContractsByChainId = (
     }
   | undefined => {
   switch (chainId) {
+    case 1:
+      return {
+        tokenLock: "0x006384dE9D80C04bF908495676C507EFfF5C7AD2",
+        gtcToken: "0xDe30da39c46104798bB5aA3fe8B9e0e1F348163F",
+      };
     case 11155111:
       return {
         tokenLock: "0x006384dE9D80C04bF908495676C507EFfF5C7AD2",
