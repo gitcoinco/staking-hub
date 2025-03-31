@@ -15,6 +15,14 @@ export const getStakePoolCards = (stakeOverview: StakerOverview): StakePoolDataC
       (claim) => BigInt(claim.chainId) === BigInt(pool.chainId) && claim.poolId === pool.id,
     );
 
+    const latestClaimTimestamp =
+      poolClaims.length > 0
+        ? Math.max(
+            ...poolClaims.map((claim) => {
+              return Number(claim.blockTimestamp) * 1000;
+            }),
+          )
+        : undefined;
     const isClaimed = poolClaims.length > 0;
 
     const isClaimable = pool.isClaimable && !isClaimed;
@@ -40,11 +48,11 @@ export const getStakePoolCards = (stakeOverview: StakerOverview): StakePoolDataC
         );
 
         return {
-          name: application.project.metadata.title,
-          description: application.project.metadata.description,
-          image: application.project.metadata.logoImg
-            ? `https://d16c97c2np8a2o.cloudfront.net/ipfs/${application.project.metadata.logoImg}`
-            : "https://picsum.photos/200",
+          name: application.metadata.application.project.title,
+          description: application.metadata.application.project.description,
+          image: application.metadata.application.project.logoImg
+            ? `https://d16c97c2np8a2o.cloudfront.net/ipfs/${application.metadata.application.project.logoImg}`
+            : "https://d16c97c2np8a2o.cloudfront.net/ipfs/bafkreihbauobycfxsvr5gm5kad7r74vequsz3dcuozvqori3aukm7hnsju",
           variant: variant as Omit<StakeProjectCardProps["variant"], "stake" | "leaderboard">,
           id: application.id,
           chainId: pool.chainId,
@@ -53,10 +61,8 @@ export const getStakePoolCards = (stakeOverview: StakerOverview): StakePoolDataC
           stakedAt: latestStakeTimestamp ? new Date(latestStakeTimestamp) : new Date(),
           unlockAt: new Date(pool.donationsEndTime),
           isClaimable,
-          // TODO: add claimedAt
-          claimedAt: new Date(),
-          // TODO: add txHash of the claim of the reward
-          txHash: undefined,
+          claimedAt: latestClaimTimestamp ? new Date(latestClaimTimestamp) : undefined,
+          txHash: poolClaims.length > 0 ? poolClaims[0].transactionHash : undefined,
         };
       })
       .sort((a, b) => b.stakedAmount - a.stakedAmount);

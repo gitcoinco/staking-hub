@@ -66,54 +66,42 @@ export const processPoolData = (
       const stakedAmount =
         applicationStakes.reduce((acc, stake) => acc + Number(stake.amount), 0) / 1e18;
 
-      // Calculate reward amount if available
-      //   const rewardAmount =
-      //     applicationRewards.reduce((acc, reward) => acc + Number(reward.amount), 0) / 1e18;
-
       // Get the latest stake timestamp
       const latestStakeTimestamp =
         applicationStakes.length > 0
           ? Math.max(...applicationStakes.map((stake) => Number(stake.blockTimestamp) * 1000))
           : 0;
 
-      // TODO: Make it possible to add a claim timestamp
-      // const latestClaimTimestamp =
-      //   applicationClaims.length > 0
-      //     ? Math.max(
-      //         ...applicationClaims.map((claim) => {
-      //           return Number(claim.timestamp) * 1000;
-      //         }),
-      //       )
-      //     : undefined;
-      // const claimableAt = latestClaimTimestamp ? new Date(latestClaimTimestamp) : undefined;
-
-      const claimedAt = poolClaims.length > 0 ? new Date() : undefined;
+      const latestClaimTimestamp =
+        poolClaims.length > 0
+          ? Math.max(
+              ...poolClaims.map((claim) => {
+                return Number(claim.blockTimestamp) * 1000;
+              }),
+            )
+          : undefined;
+      const claimedAt = latestClaimTimestamp ? new Date(latestClaimTimestamp) : undefined;
 
       return {
-        name: application.project.metadata.title || "Project Name",
-        description: application.project.metadata.description || "Project Description",
-        image: application.project.metadata.logoImg
-          ? `https://d16c97c2np8a2o.cloudfront.net/ipfs/${application.project.metadata.logoImg}`
-          : "https://picsum.photos/200",
+        name: application.metadata.application.project.title || "Project Name",
+        description: application.metadata.application.project.description || "Project Description",
+        image: application.metadata.application.project.logoImg
+          ? `https://d16c97c2np8a2o.cloudfront.net/ipfs/${application.metadata.application.project.logoImg}`
+          : "https://d16c97c2np8a2o.cloudfront.net/ipfs/bafkreihbauobycfxsvr5gm5kad7r74vequsz3dcuozvqori3aukm7hnsju",
         variant,
         id: application.id,
         chainId: Number(pool.chainId),
         roundId: pool.id,
         stakedAmount,
-        // rewardAmount: rewardAmount || undefined,
         stakedAt: latestStakeTimestamp ? new Date(latestStakeTimestamp) : new Date(),
         unlockAt: new Date(pool.donationsEndTime),
         claimedAt,
         isClaimable: isClaimable,
-        // TODO: Make it possible to add a txHash to the claim
-        txHash: undefined,
+        txHash: poolClaims.length > 0 ? poolClaims[0].transactionHash : undefined,
       };
     })
     ?.sort((a, b) => {
-      if (a.stakedAmount && b.stakedAmount) {
-        return b.stakedAmount - a.stakedAmount;
-      }
-      return 0;
+      return b.stakedAmount - a.stakedAmount;
     });
 
   const matchingPoolTokenTicker = getTokensByChainId(pool.chainId).find(

@@ -42,11 +42,14 @@ export const useProjectsData = (
         ? calculateStakeInfo(poolSummary.stakes, staker, app.anchorAddress)
         : undefined;
 
+      const imageCid = app.metadata.application.project.logoImg;
+
       return {
         name: app.metadata.application.project.title,
-        image:
-          "https://d16c97c2np8a2o.cloudfront.net/ipfs/" +
-            app.metadata.application.project.logoImg || "",
+        description: app.metadata.application.project.description,
+        image: imageCid
+          ? `https://d16c97c2np8a2o.cloudfront.net/ipfs/${imageCid}`
+          : "https://d16c97c2np8a2o.cloudfront.net/ipfs/bafkreihbauobycfxsvr5gm5kad7r74vequsz3dcuozvqori3aukm7hnsju",
         id: app.id,
         chainId: Number(chainId),
         roundId: roundId,
