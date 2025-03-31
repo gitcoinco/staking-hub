@@ -30,7 +30,7 @@ networks:
         address:
           - 0xc234225833d40C3248ca672F7eFDF071B33A3870
           - 0x873a6D01eC613bb98A941E061D09c1FfD729B904
-          - 0x30FF5299E41d027D87DD0572A948fc6CE79F3FEC
+          - 0x76885b6918A8A26996030f5fbcf9B43e08EaD64D
   - id: 1
     start_block: 0
     contracts:
