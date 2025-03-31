@@ -61,6 +61,15 @@ router.post('/', createPool);
  *     tags:
  *       - pool
  *     summary: Calculates rewards for a pool based on stakes and projects
+ *     security:
+ *       - AdminApiKey: []
+ *     parameters:
+ *       - in: header
+ *         name: X-Admin-API-Key
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Admin API key for authentication
  *     requestBody:
  *       required: true
  *       content:
@@ -94,6 +103,8 @@ router.post('/', createPool);
  *               properties:
  *                 success:
  *                   type: boolean
+ *                 merkleRoot:
+ *                   type: string
  *                 rewards:
  *                   type: array
  *                   items:
@@ -105,6 +116,8 @@ router.post('/', createPool);
  *                         type: string
  *       400:
  *         description: Invalid request parameters
+ *       401:
+ *         description: Unauthorized - Invalid or missing admin API key
  *       500:
  *         description: Internal server error
  */
