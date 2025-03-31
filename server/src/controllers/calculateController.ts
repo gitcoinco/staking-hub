@@ -6,6 +6,7 @@ import { catchError, validateRequest } from '@/utils/utils';
 import { calculateRewards, generateMerkleData } from '@/utils/calculations';
 import poolService from '@/service/PoolService';
 import { indexerClient } from '@/ext/indexer';
+import { adminAuthMiddleware } from './adminAuthMiddleware';
 
 const logger = createLogger();
 
@@ -21,6 +22,8 @@ export const calculate = async (
 ): Promise<void> => {
   try {
     validateRequest(req, res);
+
+    adminAuthMiddleware(req, res);
 
     const {
       chainId,
@@ -55,7 +58,7 @@ export const calculate = async (
       
 
     const totalMatchAmount = roundCalculationInfo.matchAmount;
-    const matchingDistribution = roundCalculationInfo.matchingDistribution.matchingDistribution;
+    const matchingDistribution = roundCalculationInfo.matchingDistribution;
     const totalDuration = BigInt(
       new Date(roundCalculationInfo.donationsEndTime).getTime() / 1000
     );
@@ -120,7 +123,7 @@ export const calculate = async (
 
     // Transform rewards to remove proof before sending response
     const rewardsWithoutProof = rewards.map(({ proof, ...rest }) => rest);
-    res.status(200).json({ success: true, rewards: rewardsWithoutProof });
+    res.status(200).json({ success: true, rewards: rewardsWithoutProof, merkleRoot });
   } catch (error) {
     logger.error('Error in calculate controller:', error);
     res.status(500).json({ error: 'Internal server error' });
