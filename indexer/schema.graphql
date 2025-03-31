@@ -4,6 +4,8 @@ type MerkleAirdrop_Claim {
   amount: BigInt!
   chainId: BigInt!
   poolId: BigInt!
+  transactionHash: String!
+  blockTimestamp: Int!
 }
 
 type MerkleAirdrop_MerkleRootChanged {
