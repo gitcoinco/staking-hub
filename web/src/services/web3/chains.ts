@@ -10,7 +10,7 @@ const { alchemyId, infuraId, isDevelopment, availableNetworks } = {
   alchemyId: import.meta.env.VITE_ALCHEMY_ID,
   infuraId: import.meta.env.VITE_INFURA_ID,
   isDevelopment: import.meta.env.VITE_MODE === "development",
-  availableNetworks: [chains.sepolia.id, chains.arbitrum.id],
+  availableNetworks: [chains.sepolia.id, chains.mainnet.id],
 };
 
 interface RpcConfig {
