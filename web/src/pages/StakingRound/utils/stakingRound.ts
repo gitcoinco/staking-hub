@@ -4,7 +4,6 @@ import { Address, isAddress, parseUnits } from "viem";
 export type ProjectData = {
   name: string;
   image: string;
-  variant: "leaderboard" | "stake" | string;
   id: string;
   chainId: number;
   roundId: string;
@@ -13,7 +12,7 @@ export type ProjectData = {
   numberOfContributors: number;
   totalDonations: number;
   anchorAddress: string;
-  isStakingPeriodOver: boolean;
+  isStakingPeriod: boolean;
   rank?: number;
 };
 

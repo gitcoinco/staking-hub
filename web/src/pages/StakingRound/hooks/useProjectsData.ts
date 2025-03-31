@@ -6,7 +6,6 @@ import { calculateStakeInfo } from "../utils/calculateStakeInfo";
 export type ProjectData = {
   name: string;
   image: string;
-  variant: "leaderboard" | "stake" | string;
   id: string;
   chainId: number;
   roundId: string;
@@ -15,7 +14,7 @@ export type ProjectData = {
   numberOfContributors: number;
   totalDonations: number;
   anchorAddress: string;
-  isStakingPeriodOver: boolean;
+  isStakingPeriod: boolean;
   rank: number;
   amount?: number;
   stakedAt?: Date;
@@ -28,9 +27,9 @@ export const useProjectsData = (
   chainId: string | undefined,
   roundId: string | undefined,
   isRoundOver: boolean,
+  isRoundStarted: boolean,
   sortOption: SortOption,
   isLocking: boolean,
-  isLeaderboard: boolean,
   gtcPrice: number,
   staker?: string,
 ) => {
@@ -44,9 +43,10 @@ export const useProjectsData = (
         : undefined;
 
       return {
-        name: app.project.metadata.title,
-        image: "https://d16c97c2np8a2o.cloudfront.net/ipfs/" + app.project.metadata.logoImg || "",
-        variant: isLeaderboard ? "leaderboard" : "stake",
+        name: app.metadata.application.project.title,
+        image:
+          "https://d16c97c2np8a2o.cloudfront.net/ipfs/" +
+            app.metadata.application.project.logoImg || "",
         id: app.id,
         chainId: Number(chainId),
         roundId: roundId,
@@ -56,7 +56,7 @@ export const useProjectsData = (
         numberOfContributors: app.uniqueDonorsCount,
         totalDonations: app.totalAmountDonatedInUsd,
         anchorAddress: app.anchorAddress,
-        isStakingPeriodOver: isRoundOver,
+        isStakingPeriod: !isRoundOver && isRoundStarted,
         rank: index + 1, // Default rank based on original order
         // Add stake info if available
         stakedAmount: stakeInfo?.amount,
@@ -66,7 +66,7 @@ export const useProjectsData = (
 
     // Sort based on selected option and update ranks
     return sortProjects(mappedProjects, sortOption);
-  }, [poolSummary, chainId, roundId, isLocking, sortOption, isRoundOver, staker, isLeaderboard]);
+  }, [poolSummary, chainId, roundId, isLocking, sortOption, isRoundOver, staker]);
 };
 
 export const sortProjects = (projects: ProjectData[], sortOption: SortOption): ProjectData[] => {

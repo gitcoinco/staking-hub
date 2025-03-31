@@ -36,7 +36,6 @@ export const StakingRound = () => {
 
   const applicationId = searchParams.get("id");
 
-  const showLeaderboard = useMemo(() => applicationId === null, [applicationId]);
   const { formatted: userGTCBalance, price: gtcPrice } = useGTC();
   const {
     data: poolSummary,
@@ -48,10 +47,11 @@ export const StakingRound = () => {
   const { address } = useAccount();
 
   // Get time information for the round
-  const { isRoundOver, timeLeftMessage } = getRoundTimeInfo(
-    poolSummary?.donationsEndTime,
-    poolSummary?.donationsStartTime,
-  );
+  const {
+    isRoundOver,
+    timeLeftMessage,
+    hasStarted: isRoundStarted = false,
+  } = getRoundTimeInfo(poolSummary?.donationsEndTime, poolSummary?.donationsStartTime);
   const [isStakeConfirmationDialogOpen, setIsStakeConfirmationDialogOpen] = useState(false);
 
   // Use custom hooks for state management and data processing
@@ -98,9 +98,9 @@ export const StakingRound = () => {
     chainId,
     roundId,
     isRoundOver,
+    isRoundStarted,
     sortOption as any,
     isLocking,
-    showLeaderboard,
     gtcPrice,
     address,
   );
@@ -251,7 +251,7 @@ export const StakingRound = () => {
             </div>
 
             {/* Apply to all section */}
-            {!isRoundOver && (
+            {!isRoundOver && isRoundStarted && (
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
