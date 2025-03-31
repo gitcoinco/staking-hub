@@ -29,6 +29,8 @@ networks:
       - name: MerkleAirdrop
         address:
           - 0xc234225833d40C3248ca672F7eFDF071B33A3870
+          - 0x873a6D01eC613bb98A941E061D09c1FfD729B904
+          - 0x30FF5299E41d027D87DD0572A948fc6CE79F3FEC
   - id: 1
     start_block: 0
     contracts:
