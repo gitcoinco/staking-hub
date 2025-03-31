@@ -26,7 +26,7 @@ export const Web3Providers = ({ children }: { children: React.ReactNode }) => {
               accentColorForeground: "#000000",
             },
           }}
-          initialChain={42161}
+          initialChain={1}
         >
           {children}
         </RainbowKitProvider>
