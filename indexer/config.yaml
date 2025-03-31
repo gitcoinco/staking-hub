@@ -29,3 +29,9 @@ networks:
       - name: MerkleAirdrop
         address:
           - 0xc234225833d40C3248ca672F7eFDF071B33A3870
+  - id: 1
+    start_block: 0
+    contracts:
+      - name: TokenLock
+        address:
+          - 0x73d7439ca441da0bed1020a1f1c88bd572f3d57c
