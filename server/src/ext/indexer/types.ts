@@ -203,4 +203,6 @@ export interface Claim {
   poolId: string;
   amount: string;
   claimant: string;
+  transactionHash: string;
+  blockTimestamp: string;
 }

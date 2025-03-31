@@ -160,6 +160,8 @@ export const getPoolStakesAndClaimsByStaker = gql`
       poolId
       amount
       claimant
+      transactionHash
+      blockTimestamp
     }
   }
 `;
