@@ -66,7 +66,7 @@ export const StakeConfirmationDialog = ({
                   <span className="font-ui-sans text-lg font-bold leading-tight">
                     {chainInfo?.name}
                   </span>
-                  <span className="font-ui-mono text-sm font-medium leading-[21px]">{`Balance ${formatted} GTC`}</span>
+                  <span className="font-ui-mono text-sm font-medium leading-[21px]">{`Balance ${Number(formatted).toFixed(3)} GTC`}</span>
                 </div>
               </div>
               <Button
@@ -81,7 +81,7 @@ export const StakeConfirmationDialog = ({
           </div>
           <div className="flex items-center justify-between">
             <div className="font-ui-mono text-sm font-normal">Total cost</div>
-            <div className="font-ui-mono text-sm font-medium leading-[21px]">{`${totalCost} GTC`}</div>
+            <div className="font-ui-mono text-sm font-medium leading-[21px]">{`${totalCost.toFixed(3)} GTC`}</div>
           </div>
           <div className="flex items-center justify-center gap-3">
             <Button
