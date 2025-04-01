@@ -98,35 +98,31 @@ export const ClaimRewards = () => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-6">
-        <span className="font-ui-sans text-2xl font-medium leading-7">
-          {`Pending (${pendingPools.length})`}
-        </span>
-        <div className="flex flex-col gap-4">
-          {pendingPools.length > 0 ? (
-            pendingPools.map((props) => (
+      {pendingPools.length > 0 && (
+        <div className="flex flex-col gap-6">
+          <span className="font-ui-sans text-2xl font-medium leading-7">
+            {`Pending (${pendingPools.length})`}
+          </span>
+          <div className="flex flex-col gap-4">
+            {pendingPools.map((props) => (
               <StakePoolCard key={`${props.chainId}-${props.roundId}`} data={props} />
-            ))
-          ) : (
-            <div className="py-4 text-center text-gray-500">No pending stakes</div>
-          )}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="flex flex-col gap-6">
-        <span className="font-ui-sans text-2xl font-medium leading-7">
-          {`Claimed (${claimedPools.length})`}
-        </span>
-        <div className="flex flex-col gap-4">
-          {claimedPools.length > 0 ? (
-            claimedPools.map((props) => (
+      {claimedPools.length > 0 && (
+        <div className="flex flex-col gap-6">
+          <span className="font-ui-sans text-2xl font-medium leading-7">
+            {`Claimed (${claimedPools.length})`}
+          </span>
+          <div className="flex flex-col gap-4">
+            {claimedPools.map((props) => (
               <StakePoolCard key={`${props.chainId}-${props.roundId}`} data={props} />
-            ))
-          ) : (
-            <div className="py-4 text-center text-gray-500">No claimed rewards</div>
-          )}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
       <ProgressModal isOpen={isClaimLoading} steps={steps} />
       <ClaimConfirmationDialog
         isOpen={isConfirmationDialogOpen}
