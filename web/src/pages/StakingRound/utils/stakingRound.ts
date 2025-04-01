@@ -1,5 +1,6 @@
 import moment from "moment";
 import { Address, isAddress, parseUnits } from "viem";
+import { STAKING_CHAIN_ID } from "@/services/web3/stakingConfig";
 
 export type ProjectData = {
   name: string;
@@ -31,7 +32,13 @@ export const getLockDataParallelToApplicationIds = (
 ) => {
   const data = projects
     .map((project) => ({
-      amount: applicationsToStakeAmount[project.id],
+      amount: parseUnits(
+        (applicationsToStakeAmount[project.id] || 0).toLocaleString("en-US", {
+          maximumFractionDigits: 18,
+          useGrouping: true,
+        }),
+        18,
+      ),
       recipientAddress: project.anchorAddress,
       poolId: project.roundId,
       chainId: project.chainId,
@@ -39,11 +46,12 @@ export const getLockDataParallelToApplicationIds = (
     .filter((d) => !!d.amount && isAddress(d.recipientAddress));
 
   return {
-    amounts: data.map((d) => parseUnits(d.amount.toString(), 18)),
+    amounts: data.map((d) => d.amount),
     recipientIds: data.map((d) => d.recipientAddress as Address),
     chainIds: data.map((d) => BigInt(d.chainId)),
     poolIds: data.map((d) => BigInt(d.poolId)),
-    chainId: 11155111,
+    // TODO: make this dynamic but for now it's ok as we only have one chain
+    chainId: STAKING_CHAIN_ID,
   };
 };
 
