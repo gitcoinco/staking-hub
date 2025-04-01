@@ -5,7 +5,7 @@ import { ProgressStatus, Step } from "@gitcoin/ui/types";
 import { Address, encodeFunctionData } from "viem";
 import { useContractInteraction, ContractOperation } from "@/hooks";
 import { abi as tokenLockAbi } from "@/hooks/contracts/TokenLock/abi";
-import { getStakingContractsByChainId } from "@/services/web3/stakingConfig";
+import { getStakingContractsByChainId, STAKING_CHAIN_ID } from "@/services/web3/stakingConfig";
 import { abi } from "./abi";
 
 // Define the progress steps
@@ -93,10 +93,7 @@ export const useClaim = () => {
         {} as Record<number, ClaimParams[]>,
       );
 
-      // Process each chain sequentially
-      for (const [chainIdStr, chainClaims] of Object.entries(claimsByChain)) {
-        const chainId = Number(chainIdStr);
-
+      for (const [, chainClaims] of Object.entries(claimsByChain)) {
         const transactionsData: TransactionData[] = [];
 
         // Prepare transaction data for each claim in this chain
@@ -120,7 +117,7 @@ export const useClaim = () => {
         });
 
         transactionsData.push({
-          to: getStakingContractsByChainId(chainId)?.tokenLock as Address,
+          to: getStakingContractsByChainId(STAKING_CHAIN_ID)?.tokenLock as Address,
           data: encodeFunctionData({
             abi: tokenLockAbi,
             functionName: "claim",
@@ -157,7 +154,7 @@ export const useClaim = () => {
         });
 
         await contractInteractionMutation.mutateAsync({
-          chainId,
+          chainId: STAKING_CHAIN_ID,
           transactionsData: async () => transactionsData,
           getProgressSteps: getClaimProgressSteps,
           contractOperations,
