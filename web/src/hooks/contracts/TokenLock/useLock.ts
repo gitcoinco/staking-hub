@@ -4,7 +4,7 @@ import { ProgressStatus, Step } from "@gitcoin/ui/types";
 import { Address, encodeFunctionData } from "viem";
 import { erc20Abi } from "viem";
 import { useContractInteraction, ContractOperation } from "@/hooks";
-import { getStakingContractsByChainId } from "@/services/web3/stakingConfig";
+import { getStakingContractsByChainId, STAKING_CHAIN_ID } from "@/services/web3/stakingConfig";
 import { abi } from "./abi";
 
 // Define the progress steps
@@ -67,19 +67,17 @@ export const useLock = () => {
     }
   }, [contractInteractionMutation.isSuccess, contractInteractionMutation.isError]);
   const lock = async ({
-    chainId,
     amounts,
     recipientIds,
-    chainIds = [BigInt(chainId)],
+    chainIds = [BigInt(STAKING_CHAIN_ID)],
     poolIds = [BigInt(1)],
   }: {
-    chainId: number;
     amounts: bigint[];
     recipientIds: Address[];
     chainIds?: bigint[];
     poolIds?: bigint[];
   }) => {
-    const stakingContracts = getStakingContractsByChainId(chainId);
+    const stakingContracts = getStakingContractsByChainId(STAKING_CHAIN_ID);
     const tokenLockAddress = stakingContracts?.tokenLock;
     const gtcTokenAddress = stakingContracts?.gtcToken;
     setIsLoading(true);
@@ -116,7 +114,7 @@ export const useLock = () => {
       }`;
 
       await contractInteractionMutation.mutateAsync({
-        chainId,
+        chainId: STAKING_CHAIN_ID,
         transactionsData: async () => [
           {
             to: gtcTokenAddress,
