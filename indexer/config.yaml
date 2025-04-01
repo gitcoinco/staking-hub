@@ -22,18 +22,6 @@ contracts:
       - event: "Clawback(address indexed clawbackAddress, uint256 amount, address token)"
 
 networks:
-  - id: 11155111
-    start_block: 0
-    contracts:
-      - name: TokenLock
-        address:
-          - 0x9324bC7A3aDFC19A40E790eCeFf9e46009df5587
-          - 0x006384dE9D80C04bF908495676C507EFfF5C7AD2
-      - name: MerkleAirdrop
-        address:
-          - 0xc234225833d40C3248ca672F7eFDF071B33A3870
-          - 0x873a6D01eC613bb98A941E061D09c1FfD729B904
-          - 0x76885b6918A8A26996030f5fbcf9B43e08EaD64D
   - id: 1
     start_block: 0
     contracts:
