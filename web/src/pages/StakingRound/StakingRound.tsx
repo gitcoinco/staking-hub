@@ -287,7 +287,7 @@ export const StakingRound = () => {
           </div>
         </div>
 
-        <div className="flex max-h-[750px] flex-col gap-2 overflow-y-auto">
+        <div className="flex h-[calc(100vh-500px)] flex-col gap-2 overflow-y-auto">
           {filteredProjects.length === 0 && (
             <div className="flex h-[200px] items-center justify-center">
               <span className="font-ui-sans text-base font-bold">No projects found</span>
@@ -310,7 +310,7 @@ export const StakingRound = () => {
           })}
         </div>
       </div>
-      <div className="bg-grey-50 flex items-center justify-between rounded-lg px-6 py-4">
+      <div className="bg-grey-50 sticky bottom-0 flex items-center justify-between rounded-lg px-6 py-4 shadow-lg">
         <div className="flex flex-col items-start">
           <span className="font-ui-sans text-base font-bold">
             {`${Number(Number(totalStaked).toFixed(2))} GTC`}
