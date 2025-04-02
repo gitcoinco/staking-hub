@@ -34,8 +34,6 @@ export const StakingRound = () => {
   const { chainId, roundId } = useParams();
   const [searchParams] = useSearchParams();
 
-  const applicationId = searchParams.get("id");
-
   const { formatted: userGTCBalance, price: gtcPrice } = useGTC();
   const {
     data: poolSummary,
@@ -67,16 +65,32 @@ export const StakingRound = () => {
     handleClearAll,
   } = useStakingRoundState(roundId);
 
-  const applicationToStake = () => {
-    if (applicationId) {
-      const props = projects.find((project) => project.id === applicationId);
-      if (!props) {
-        return null;
-      }
+  // Get sorted projects data
+  const projects = useProjectsData(
+    poolSummary,
+    chainId,
+    roundId,
+    isRoundOver,
+    isRoundStarted,
+    sortOption as any,
+    isLocking,
+    gtcPrice,
+    address,
+  );
 
+  const applicationId = searchParams.get("id");
+  const selectedApplicationProps = useMemo(
+    () => projects.find((project) => project.id === applicationId),
+    [applicationId, projects],
+  );
+
+  const hasSelectedApplication = !!selectedApplicationProps;
+
+  const applicationToStake = () => {
+    if (hasSelectedApplication) {
+      const props = selectedApplicationProps;
       const currentStake = applicationsToStakeAmount[props.id] || 0;
       const maxStake = calculateMaxStake(Number(userGTCBalance), totalStaked, currentStake);
-
       return (
         <StakeProjectCard
           key={props.id}
@@ -91,19 +105,6 @@ export const StakingRound = () => {
 
     return null;
   };
-
-  // Get sorted projects data
-  const projects = useProjectsData(
-    poolSummary,
-    chainId,
-    roundId,
-    isRoundOver,
-    isRoundStarted,
-    sortOption as any,
-    isLocking,
-    gtcPrice,
-    address,
-  );
 
   const lockData = useMemo(
     () => getLockDataParallelToApplicationIds(projects, applicationsToStakeAmount),
@@ -287,7 +288,10 @@ export const StakingRound = () => {
           </div>
         </div>
 
-        <div className="flex h-[calc(100vh-500px)] flex-col gap-2 overflow-y-auto">
+        <div
+          style={{ height: hasSelectedApplication ? "calc(100vh - 700px)" : "calc(100vh - 500px)" }}
+          className="flex flex-col gap-2 overflow-y-auto"
+        >
           {filteredProjects.length === 0 && (
             <div className="flex h-[200px] items-center justify-center">
               <span className="font-ui-sans text-base font-bold">No projects found</span>
