@@ -63,9 +63,9 @@ export const StakingRound = () => {
     setAmountToApplyToAll,
     handleStakeChange,
     handleApplyToAll,
-    handleClearAll,
     handleSortChange,
-  } = useStakingRoundState();
+    handleClearAll,
+  } = useStakingRoundState(roundId);
 
   const applicationToStake = () => {
     if (applicationId) {
@@ -256,6 +256,13 @@ export const StakingRound = () => {
                 <Input
                   type="number"
                   min={0}
+                  // Calculate step size by dividing user's GTC balance by the number of projects and 10
+                  // This ensures a consistent 10-step slider with rounded values for better usability
+                  step={
+                    Math.floor(
+                      (Number(userGTCBalance) / (filteredProjects.length || 1) / 10) * 100000,
+                    ) / 100000
+                  }
                   max={maxAmountToApplyToAll}
                   value={amountToApplyToAll === null ? "" : amountToApplyToAll}
                   placeholder="Amount (GTC)"
