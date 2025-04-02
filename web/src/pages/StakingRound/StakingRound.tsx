@@ -290,7 +290,7 @@ export const StakingRound = () => {
 
         <div
           style={{ height: hasSelectedApplication ? "calc(100vh - 700px)" : "calc(100vh - 500px)" }}
-          className="flex flex-col gap-2 overflow-y-auto"
+          className="flex min-h-[200px] flex-col gap-2 overflow-y-auto"
         >
           {filteredProjects.length === 0 && (
             <div className="flex h-[200px] items-center justify-center">
