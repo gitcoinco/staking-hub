@@ -54,7 +54,7 @@ export const StakeConfirmationDialog = ({
                   <span className="font-ui-sans max-w-[250px] text-sm font-medium leading-tight">
                     {project.name}
                   </span>
-                  <span className="font-ui-mono pr-2 text-sm font-medium leading-[21px]">{`${project.stakeAmount} GTC`}</span>
+                  <span className="font-ui-mono pr-2 text-sm font-medium leading-[21px]">{`${(project.stakeAmount).toFixed(3)} GTC`}</span>
                 </div>
               ))}
             </div>
