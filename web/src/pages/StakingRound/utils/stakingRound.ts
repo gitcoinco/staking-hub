@@ -35,7 +35,7 @@ export const getLockDataParallelToApplicationIds = (
       amount: parseUnits(
         (applicationsToStakeAmount[project.id] || 0).toLocaleString("en-US", {
           maximumFractionDigits: 18,
-          useGrouping: true,
+          useGrouping: false,
         }),
         18,
       ),
