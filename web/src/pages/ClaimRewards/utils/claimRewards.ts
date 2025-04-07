@@ -92,7 +92,7 @@ export const processPoolData = (
         id: application.id,
         chainId: Number(pool.chainId),
         roundId: pool.id,
-        stakedAmount,
+        stakedAmount: Number(stakedAmount.toFixed(17)),
         stakedAt: latestStakeTimestamp ? new Date(latestStakeTimestamp) : new Date(),
         unlockAt: new Date(pool.donationsEndTime),
         claimedAt,
@@ -100,6 +100,7 @@ export const processPoolData = (
         txHash: poolClaims.length > 0 ? poolClaims[0].transactionHash : undefined,
       };
     })
+    ?.filter((project) => !!project.stakedAmount)
     ?.sort((a, b) => {
       return b.stakedAmount - a.stakedAmount;
     });
@@ -116,9 +117,11 @@ export const processPoolData = (
     votingStartDate: new Date(pool.donationsStartTime),
     votingEndDate: new Date(pool.donationsEndTime),
     totalProjects: pool.approvedProjectCount,
-    totalStaked: Number(pool.totalStaked) / 1e18,
+    totalStaked: Number((Number(pool.totalStaked) / 1e18).toFixed(2)),
     matchingPoolAmount: pool.roundMetadata.quadraticFundingConfig.matchingFundsAvailable,
-    stakedAmount: poolStakes.reduce((acc, stake) => acc + Number(stake.amount), 0) / 1e18,
+    stakedAmount: Number(
+      (poolStakes.reduce((acc, stake) => acc + Number(stake.amount), 0) / 1e18).toFixed(17),
+    ),
     lastStakeDate:
       poolStakes.length > 0
         ? new Date(Math.max(...poolStakes.map((stake) => Number(stake.blockTimestamp) * 1000)))

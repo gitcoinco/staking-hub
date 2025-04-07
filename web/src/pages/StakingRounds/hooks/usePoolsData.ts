@@ -34,9 +34,8 @@ export const usePoolsData = (poolsOverview: PoolOverview[] | undefined) => {
         votingStartDate,
         votingEndDate,
         totalProjects: pool.approvedProjectCount,
-        totalStaked: Number(pool.totalStaked) / 1e18,
+        totalStaked: Number((Number(pool.totalStaked) / 1e18).toFixed(2)),
         matchingPoolAmount: pool.roundMetadata.quadraticFundingConfig.matchingFundsAvailable,
-        stakedAmount: 0, // todo: add staked amount to backend
         matchingPoolTokenTicker: tokenData.symbol,
         isLoading: false,
         status,
