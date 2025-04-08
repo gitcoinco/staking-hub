@@ -57,7 +57,7 @@ export const getStakePoolCards = (stakeOverview: StakerOverview): StakePoolDataC
           id: application.id,
           chainId: pool.chainId,
           roundId: pool.id,
-          stakedAmount: amount,
+          stakedAmount: Number(amount.toFixed(17)),
           stakedAt: latestStakeTimestamp ? new Date(latestStakeTimestamp) : new Date(),
           unlockAt: new Date(pool.donationsEndTime),
           isClaimable,
@@ -65,6 +65,7 @@ export const getStakePoolCards = (stakeOverview: StakerOverview): StakePoolDataC
           txHash: poolClaims.length > 0 ? poolClaims[0].transactionHash : undefined,
         };
       })
+      .filter((project) => !!project.stakedAmount)
       .sort((a, b) => b.stakedAmount - a.stakedAmount);
 
     const matchingPoolTokenTicker = getTokensByChainId(pool.chainId).find(
@@ -79,14 +80,17 @@ export const getStakePoolCards = (stakeOverview: StakerOverview): StakePoolDataC
       votingStartDate: new Date(pool.donationsStartTime),
       votingEndDate: new Date(pool.donationsEndTime),
       totalProjects: pool.approvedProjectCount,
-      totalStaked: Number(pool.totalStaked) / 1e18,
+      totalStaked: Number((Number(pool.totalStaked) / 1e18).toFixed(2)),
       matchingPoolAmount: pool.roundMetadata.quadraticFundingConfig.matchingFundsAvailable,
-      stakedAmount:
-        stakeOverview.stakes
-          .filter(
-            (stake) => BigInt(stake.chainId) === BigInt(pool.chainId) && stake.poolId === pool.id,
-          )
-          .reduce((acc, stake) => acc + Number(stake.amount), 0) / 1e18,
+      stakedAmount: Number(
+        (
+          stakeOverview.stakes
+            .filter(
+              (stake) => BigInt(stake.chainId) === BigInt(pool.chainId) && stake.poolId === pool.id,
+            )
+            .reduce((acc, stake) => acc + Number(stake.amount), 0) / 1e18
+        ).toFixed(17),
+      ),
       lastStakeDate: new Date(
         Math.max(
           ...stakeOverview.stakes

@@ -54,15 +54,18 @@ export const useProjectsData = (
         chainId: Number(chainId),
         roundId: roundId,
         tokenUsdValue: gtcPrice, // TODO: get from backend
-        totalStaked:
-          Number(poolSummary.totalStakesByAnchorAddress[getAddress(app.anchorAddress)] ?? 0) / 1e18,
+        totalStaked: Number(
+          (Number(poolSummary.totalStakesByAnchorAddress[getAddress(app.anchorAddress)] ?? 0) /
+            1e18)
+            .toFixed(2),
+        ),
         numberOfContributors: app.uniqueDonorsCount,
-        totalDonations: app.totalAmountDonatedInUsd,
+        totalDonations: Number(app.totalAmountDonatedInUsd.toFixed(2)),
         anchorAddress: app.anchorAddress,
         isStakingPeriod: !isRoundOver && isRoundStarted,
         rank: index + 1, // Default rank based on original order
         // Add stake info if available
-        stakedAmount: stakeInfo?.amount,
+        stakedAmount: stakeInfo?.amount && Number(stakeInfo?.amount.toFixed(17)),
         stakedAt: stakeInfo?.stakedAt,
       };
     });
