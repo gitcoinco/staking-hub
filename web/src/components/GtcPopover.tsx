@@ -7,8 +7,8 @@ import { Icon } from "@gitcoin/ui";
 import { useClickOutside } from "@gitcoin/ui/hooks/useClickOutside";
 import { getChainInfo } from "@gitcoin/ui/lib";
 import { useDisconnect } from "wagmi";
-import { useGTC } from "@/hooks/tokens";
 import { useSquidWidget } from "@/hooks/frontend";
+import { useGTC } from "@/hooks/tokens";
 
 export const GtcPopover = () => {
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -61,14 +61,27 @@ export const GtcPopover = () => {
               </div>
             </div>
           </div>
-          <div className="py-2">
+          <div className="flex flex-col gap-4 py-2">
             <Button
               variant="secondary"
               value="Get GTC"
-              icon={<Icon type={IconType.ARROW_RIGHT} />}
+              icon={<Icon type={IconType.ARROW_RIGHT} className="size-4" />}
               iconPosition="right"
               className="w-full bg-blue-100"
               onClick={handleGetGTC}
+            />
+            <Button
+              variant="ghost"
+              value="Learn More"
+              icon={<Icon type={IconType.EXTERNAL_LINK} className="size-4" />}
+              iconPosition="right"
+              className="w-full"
+              onClick={() => {
+                window.open(
+                  "https://dashboard.boost.explorer.gitcoin.co/about-explorer-boost",
+                  "_blank",
+                );
+              }}
             />
           </div>
           <div className="border-grey-100 w-full border-t" />
