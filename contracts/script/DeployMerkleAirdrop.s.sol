@@ -10,12 +10,12 @@ contract DeployMerkleAirdrop is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        address matchingPool = 0x5645bF145C3f1E974D0D7FB91bf3c68592ab5012;
-        address sender = 0x5645bF145C3f1E974D0D7FB91bf3c68592ab5012;
-        address token = 0x5e7C95EaF08D6FeD05a8E4BC607Fb682834C74cE;
-        bytes32 merkleRoot = 0x4b76bcc5479b1f30b59a99b588b8bbf09472e15edb8770dad2e1d603b0cf45e9;
-        uint256 chainId = 11155111;
-        uint256 poolId = 706;
+        address matchingPool = 0x7cFC79051ba6D09916A6b881Cf4894CaE83BcC4c;
+        address sender = 0x7cFC79051ba6D09916A6b881Cf4894CaE83BcC4c;
+        address token = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+        bytes32 merkleRoot = 0x014a239e397b09622969f695efa7b6ece3d02d8af6cee0da4207faa411fbdb60;
+        uint256 chainId = 1;
+        uint256 poolId = 867;
 
         MerkleAirdrop airdrop = new MerkleAirdrop(matchingPool, sender, IERC20(token), merkleRoot, chainId, poolId);
         vm.stopBroadcast();
